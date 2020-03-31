@@ -33,3 +33,6 @@
 
 # CMake build dir
 build
+
+# Executable dir
+bin
