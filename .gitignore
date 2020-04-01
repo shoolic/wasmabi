@@ -36,3 +36,6 @@ build
 
 # Executable dir
 bin
+
+# VS Code
+.vscode
