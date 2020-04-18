@@ -7,14 +7,22 @@ namespace wasmabi {
 
 class SourceController {
 public:
-  SourceController(std::istream sourceStream);
-  const char getNextChar();
-  const std::size_t getCurrentLineNumber() const;
-  const std::size_t getCurrentColumnNumber() const;
-  const std::size_t getCurrentCharacterColumn() const;
+  SourceController(std::istream &sourceStream);
+  char getNextChar();
+  std::size_t getCurrentLineNumber() const;
+  std::size_t getCurrentColumnNumber() const;
+  std::size_t getCurrentCharacterPosition() const;
   const std::string getCurrentLine() const;
 
 private:
+  bool isNextLineChar(char c) const;
+
+  std::istream &sourceStream;
+  std::size_t currentLineNumber;
+  std::size_t currentColumnNumber;
+  std::size_t lastRetCharPos;
+  std::size_t currentLinePosition;
+  char lastRetChar;
 };
 
 } // namespace wasmabi
