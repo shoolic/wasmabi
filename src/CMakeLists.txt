@@ -30,7 +30,7 @@ file(GLOB_RECURSE INCLUDE_FILES "*.hpp")
 
 list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 add_library(${PROJECT_NAME}Lib STATIC ${SOURCE_FILES})
-
+target_link_libraries(${PROJECT_NAME}Lib stdc++fs)
 
 add_executable(${EXECUTABLE_NAME} "main.cpp" ${INCLUDE_FILES})
 target_link_libraries(${EXECUTABLE_NAME} 

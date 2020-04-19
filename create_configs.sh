@@ -11,15 +11,15 @@ mkdir ${work_dir}/build/Tests
 
 {
 cd ${work_dir}/build/Release;
-cmake ../../ -DCMAKE_BUILD_TYPE="Release"
+CXX=g++-8 cmake ../../ -DCMAKE_BUILD_TYPE="Release"
 }
 
 {
 cd ${work_dir}/build/Debug;
-cmake ../../ -DCMAKE_BUILD_TYPE="Debug"
+CXX=g++-8 cmake ../../ -DCMAKE_BUILD_TYPE="Debug"
 }
 
 {
 cd ${work_dir}/build/Tests;
-cmake ../../ -DCMAKE_BUILD_TYPE="Debug";
+CXX=g++-8 cmake ../../ -DCMAKE_BUILD_TYPE="Debug";
 }

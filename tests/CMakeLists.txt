@@ -6,9 +6,9 @@ set(TEST_NAME ${PROJECT_NAME}Tests)
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 file(GLOB_RECURSE SOURCE_FILES "*.cpp")
-
 # file(GLOB_RECURSE INCLUDE_FILES ${PROJECT_SOURCE_DIR}/src/*.hpp)
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/tests)
 
 add_executable(${TEST_NAME} ${SOURCE_FILES})
 

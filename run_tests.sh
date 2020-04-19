@@ -3,7 +3,7 @@ work_dir=${PWD}
 
 {
 cd ${work_dir}/build/Tests;
-cmake --build . --target wasmabiTests
+CXX=g++-8 cmake --build . --target wasmabiTests
 }
 
 {
