@@ -1,5 +1,6 @@
 #ifndef WASMABI_LEXER_HPP
 #define WASMABI_LEXER_HPP
+#include "../Errors/ErrorHandler.hpp"
 #include "../SourceController/SourceController.hpp"
 #include "../Token/Token.hpp"
 #include <map>
@@ -7,14 +8,15 @@ namespace wasmabi {
 
 class Lexer {
 public:
-  Lexer(SourceController &sourceController);
+  Lexer(SourceController &sourceController_, ErrorHandler &errorHandler_);
   const Token nextToken();
 
 private:
   SourceController &sourceController;
+  ErrorHandler &errorHandler;
 
   void skipWhitespaces();
-  void skipComment();
+  bool trySkipComment(Token &token);
   bool tryStringLiteral(Token &token);
   bool tryNumericLiteral(Token &token);
   bool trySingleCharToken(Token &token);

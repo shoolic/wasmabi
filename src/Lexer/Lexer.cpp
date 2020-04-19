@@ -1,17 +1,21 @@
 #include "Lexer.hpp"
+#include "../Errors/ErrorTypes.hpp"
+#include <iostream>
 namespace wasmabi {
-Lexer::Lexer(SourceController &sourceController_)
-    : sourceController(sourceController_) {}
+Lexer::Lexer(SourceController &sourceController_, ErrorHandler &errorHandler_)
+    : sourceController(sourceController_), errorHandler(errorHandler_) {}
 
 const Token Lexer::nextToken() {
   Token token;
 
-  skipComment();
+  if (trySkipComment(token)) {
+    return token;
+  }
 
   skipWhitespaces();
 
   if (sourceController.end()) {
-    token.type = Token::Type::Eof;
+    token.setType(Token::Type::Eof);
     return token;
   }
 
@@ -35,6 +39,9 @@ const Token Lexer::nextToken() {
     return token;
   }
 
+  errorHandler.registerLexicalError(Error::Lexical::InvalidToken);
+
+  token.setType(Token::Type::Invalid);
   return token;
 }
 
@@ -43,21 +50,40 @@ void Lexer::skipWhitespaces() {
     sourceController.get();
   }
 }
-void Lexer::skipComment() {
+
+bool Lexer::trySkipComment(Token &token) {
   if (sourceController.peek() == Boundaries::Comment) {
     sourceController.get();
-    while (sourceController.get() != Boundaries::Comment)
-      ;
+
+    while (sourceController.get() != Boundaries::Comment) {
+      if (sourceController.end()) {
+        errorHandler.registerLexicalError(Error::Lexical::NoCommentEnd);
+        token.setType(Token::Type::Invalid);
+
+        return true;
+      }
+    };
   }
+
+  return false;
 }
+
 bool Lexer::tryStringLiteral(Token &token) {
   if (sourceController.peek() == Boundaries::Quote) {
-    token.type = Token::Type::StringLiteral;
+    token.setType(Token::Type::StringLiteral);
     sourceController.get();
     char c = '\0';
+
     while ((c = sourceController.get()) != Boundaries::Quote) {
       token.value += c;
+      if (sourceController.end()) {
+        errorHandler.registerLexicalError(Error::Lexical::NoQuoteEnd);
+        token.setType(Token::Type::Invalid);
+
+        return true;
+      }
     }
+
     return true;
   }
 
@@ -66,28 +92,28 @@ bool Lexer::tryStringLiteral(Token &token) {
 
 bool Lexer::tryNumericLiteral(Token &token) {
   if (isdigit(sourceController.peek())) {
-    token.type = Token::Type::IntLiteral;
+    token.setType(Token::Type::IntLiteral);
     char c = sourceController.get();
     token.value += c;
 
     if (c == '0' && isdigit(sourceController.peek())) {
-      token.type = Token::Type::Invalid;
+      token.setType(Token::Type::Invalid);
+      errorHandler.registerLexicalError(Error::Lexical::UnexpectedZero);
       return true;
     }
 
     while (true) {
       if (sourceController.peek() == '.') {
         if (token.type == Token::Type::FloatLiteral) {
-          // too many dots in floatLiteral
-          token.type = Token::Type::Invalid;
+          errorHandler.registerLexicalError(Error::Lexical::ExtraDot);
+          token.setType(Token::Type::Invalid);
           return true;
         } else {
-          token.type = Token::Type::FloatLiteral;
+          token.setType(Token::Type::FloatLiteral);
           token.value += sourceController.get();
-
           if (!isdigit(sourceController.peek())) {
-            // expected digit
-            token.type = Token::Type::Invalid;
+            errorHandler.registerLexicalError(Error::Lexical::ExpectedDigit);
+            token.setType(Token::Type::Invalid);
             return true;
           }
         }
@@ -107,7 +133,7 @@ bool Lexer::trySingleCharToken(Token &token) {
 
   if (it != singleCharMap.end()) {
     token.value += sourceController.get();
-    token.type = it->second;
+    token.setType(it->second);
     return true;
   }
 
@@ -122,11 +148,11 @@ bool Lexer::tryDoubleCharToken(Token &token) {
 
     if (sourceController.peek() == it->second.next) {
       token.value += sourceController.get();
-      token.type = it->second.typeIfNextMatched;
+      token.setType(it->second.typeIfNextMatched);
       return true;
     }
 
-    token.type = it->second.typeIfNextNotMatched;
+    token.setType(it->second.typeIfNextNotMatched);
     return true;
   }
 
@@ -135,7 +161,7 @@ bool Lexer::tryDoubleCharToken(Token &token) {
 
 bool Lexer::tryIdentifierOrKeyword(Token &token) {
   if (isIdentifierChar(sourceController.peek())) {
-    token.type = Token::Type::Identifier;
+    token.setType(Token::Type::Identifier);
     while (isIdentifierChar(sourceController.peek())) {
       token.value += sourceController.get();
     }
@@ -151,7 +177,7 @@ bool Lexer::tryIdentifierOrKeyword(Token &token) {
 bool Lexer::tryKeyword(Token &token) {
   auto it = keywords.find(token.value);
   if (it != keywords.end()) {
-    token.type = it->second;
+    token.setType(it->second);
     return true;
   }
   return false;

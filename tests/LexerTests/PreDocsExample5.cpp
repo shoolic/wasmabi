@@ -1,6 +1,7 @@
 #include "Lexer/Lexer.hpp"
 #include "SourceController/SourceController.hpp"
 #include "Token/Token.hpp"
+#include "helpers/NullOstream.hpp"
 #include <boost/test/unit_test.hpp>
 
 #include <fstream>
@@ -10,12 +11,17 @@ using namespace wasmabi;
 
 BOOST_AUTO_TEST_SUITE(PreDocsExample5)
 
-BOOST_AUTO_TEST_CASE(PreDocsExample5) {
-  std::ifstream file;
-  file.open("tests/examples/preDocs5.wa");
+OSTREAM_DEFINITION
 
-  SourceController sourceController(file);
-  Lexer lexer(sourceController);
+BOOST_AUTO_TEST_CASE(PreDocsExample5) {
+  std::string path("tests/examples/preDocs5.wa");
+  std::ifstream file;
+  file.open(path);
+
+  SourceController sourceController(file,
+                                    std::filesystem::absolute(path).string());
+  ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
+  Lexer lexer(sourceController, errorHandler);
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::Identifier);

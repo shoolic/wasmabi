@@ -62,7 +62,8 @@ public:
     When,
     Otherwise,
 
-    Invalid
+    Invalid,
+    Unknown
   };
 
   struct potentiallyDoubleChar {
@@ -75,12 +76,15 @@ public:
   static std::map<Type, std::string> map;
   friend std::ostream &operator<<(std::ostream &os, const Token::Type &dt);
 
-  std::string value;
-  Type type;
   const std::string getValue() const;
   Token::Type getType() const;
+  void setType(Token::Type type);
+
+  friend class Lexer;
 
 private:
+  Type type;
+  std::string value;
 };
 
 } // namespace wasmabi

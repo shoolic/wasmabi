@@ -1,10 +1,18 @@
 #include "Token.hpp"
 
 namespace wasmabi {
-Token::Token() : type(Token::Type::Invalid) {}
+
+Token::Token() : type(Token::Type::Unknown) {}
 
 const std::string Token::getValue() const { return value; }
+
 Token::Type Token::getType() const { return type; }
+
+void Token::setType(Token::Type type_) {
+  if (type != Type::Invalid) {
+    type = type_;
+  }
+}
 
 std::map<Token::Type, std::string> Token::map = {
     {Token::Type::Eof, "Eof"},
@@ -48,7 +56,7 @@ std::map<Token::Type, std::string> Token::map = {
     {Token::Type::When, "When"},
     {Token::Type::Otherwise, "Otherwise"},
     {Token::Type::Invalid, "Invalid"},
-
+    {Token::Type::Unknown, "Unknown"},
 }; // namespace wasmabi
 
 std::ostream &operator<<(std::ostream &out, const Token::Type &type) {

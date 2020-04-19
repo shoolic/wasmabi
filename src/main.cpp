@@ -1,6 +1,8 @@
+#include "Errors/ErrorHandler.hpp"
 #include "Lexer/Lexer.hpp"
 #include "SourceController/SourceController.hpp"
 #include "Token/Token.hpp"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -14,12 +16,14 @@ int main(int argc, char *argv[]) {
   std::ifstream file;
   file.open(argv[1]);
 
-  SourceController sourceController(file);
-  Lexer lexer(sourceController);
+  SourceController sourceController(file, std::filesystem::absolute(argv[1]));
+  ErrorHandler errorHandler(sourceController, std::cout);
+  Lexer lexer(sourceController, errorHandler);
 
   Token token = lexer.nextToken();
 
-  while (token.getType() != Token::Type::Eof) {
+  while (token.getType() != Token::Type::Eof &&
+         token.getType() != Token::Type::Invalid) {
     std::cout << token.getType() << " " << token.getValue() << std::endl;
     token = lexer.nextToken();
   }
