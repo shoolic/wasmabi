@@ -1,0 +1,3 @@
+if not (x >= 0 or y > 10) and x != -5 {
+  print "Zaakceptowano";
+}

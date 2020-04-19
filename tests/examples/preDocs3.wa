@@ -1,0 +1,5 @@
+loop x > 0 and y != 4 {
+  print x;
+  x = x - 1;
+}
+

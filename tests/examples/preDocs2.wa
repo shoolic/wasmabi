@@ -1,0 +1,5 @@
+let x: string = select {
+  "Sukces" when score >= 75,
+  "Moze byc" when score >= 50,
+  "Porazka" otherwise
+}

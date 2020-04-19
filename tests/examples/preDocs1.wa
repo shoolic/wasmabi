@@ -1,0 +1,24 @@
+fn calc(base: int, exponent: int): int {
+  return select {
+    base^exponent + 1 when exponent > 0 and not base < 0,
+    0 otherwise
+  };
+}
+
+fn printer(): void {
+  print "tekst";
+}
+
+fn main(): int {
+  let x: int = calc(2, 3);
+
+  {
+    let y: int = 2;
+    print calc(x, y);
+  }
+
+  printer();
+
+  return 0;
+}
+
