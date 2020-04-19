@@ -8,7 +8,7 @@ set(EXECUTABLE_NAME ${PROJECT_NAME})
 
 
 # MACRO(SUBDIRLIST result curdir)
-#   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+#   FILE(GLOB_RECURSE children curdir/*)
 #   SET(dirlist "")
 #   FOREACH(child ${children})
 #     IF(IS_DIRECTORY ${curdir}/${child})
@@ -25,9 +25,11 @@ set(EXECUTABLE_NAME ${PROJECT_NAME})
 
 file(GLOB_RECURSE SOURCE_FILES "*.cpp")
 file(GLOB_RECURSE INCLUDE_FILES "*.hpp")
+# message(${INCLUDE_FILES})
+# include_directories(SUBDIRS)
 
 list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
-add_library(${PROJECT_NAME}Lib STATIC ${SOURCE_FILES} ${INCLUDE_FILES})
+add_library(${PROJECT_NAME}Lib STATIC ${SOURCE_FILES})
 
 
 add_executable(${EXECUTABLE_NAME} "main.cpp" ${INCLUDE_FILES})
