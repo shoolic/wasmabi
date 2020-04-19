@@ -8,7 +8,7 @@ SourceController::SourceController(std::istream &sourceStream_)
     : sourceStream(sourceStream_), currentLineNumber(1), currentColumnNumber(1),
       lastRetCharPos(-1), currentLinePosition(0), lastRetChar('\0') {}
 
-char SourceController::getNextChar() {
+char SourceController::get() {
   char currentChar = '\0';
   sourceStream.get(currentChar);
 
@@ -26,6 +26,8 @@ char SourceController::getNextChar() {
   lastRetChar = currentChar;
   return currentChar;
 }
+
+char SourceController::peek() { return sourceStream.peek(); }
 
 std::size_t SourceController::getCurrentLineNumber() const {
   return currentLineNumber;
@@ -53,5 +55,7 @@ const std::string SourceController::getCurrentLine() const {
 bool SourceController::isNextLineChar(char c) const {
   return c == '\n' || c == '\r';
 }
+
+bool SourceController::end() { return sourceStream.peek() == EOF; }
 
 } // namespace wasmabi

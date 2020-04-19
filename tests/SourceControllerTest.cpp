@@ -7,7 +7,7 @@ BOOST_AUTO_TEST_SUITE(SourceControllerTest)
 BOOST_AUTO_TEST_CASE(WindowsNewLines) {
   std::stringstream ss{"a\r\n\r\nb"};
   wasmabi::SourceController sourceController(ss);
-  while (char c = sourceController.getNextChar() != 'b')
+  while (char c = sourceController.get() != 'b')
     ;
   BOOST_CHECK_EQUAL(sourceController.getCurrentLineNumber(), 3);
   BOOST_CHECK_EQUAL(sourceController.getCurrentColumnNumber(), 1);
@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(WindowsNewLines) {
 BOOST_AUTO_TEST_CASE(MacNewLines) {
   std::stringstream ss{"a\r\rb"};
   wasmabi::SourceController sourceController(ss);
-  while (char c = sourceController.getNextChar() != 'b')
+  while (char c = sourceController.get() != 'b')
     ;
   BOOST_CHECK_EQUAL(sourceController.getCurrentLineNumber(), 3);
   BOOST_CHECK_EQUAL(sourceController.getCurrentColumnNumber(), 1);
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(MacNewLines) {
 BOOST_AUTO_TEST_CASE(LinuxNewLines) {
   std::stringstream ss{"a\n\nb"};
   wasmabi::SourceController sourceController(ss);
-  while (char c = sourceController.getNextChar() != 'b')
+  while (char c = sourceController.get() != 'b')
     ;
   BOOST_CHECK_EQUAL(sourceController.getCurrentLineNumber(), 3);
   BOOST_CHECK_EQUAL(sourceController.getCurrentColumnNumber(), 1);

@@ -8,7 +8,9 @@ namespace wasmabi {
 class SourceController {
 public:
   SourceController(std::istream &sourceStream);
-  char getNextChar();
+  char get();
+  char peek();
+  bool end();
   std::size_t getCurrentLineNumber() const;
   std::size_t getCurrentColumnNumber() const;
   std::size_t getCurrentCharacterPosition() const;
