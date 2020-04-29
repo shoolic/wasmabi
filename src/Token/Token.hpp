@@ -4,6 +4,8 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <variant>
+
 namespace wasmabi {
 
 class Token {
@@ -76,7 +78,7 @@ public:
   static std::map<Type, std::string> map;
   friend std::ostream &operator<<(std::ostream &os, const Token::Type &dt);
 
-  const std::string getValue() const;
+  const std::variant<std::string, int, float> getValue() const;
   Token::Type getType() const;
   void setType(Token::Type type);
 
@@ -84,7 +86,7 @@ public:
 
 private:
   Type type;
-  std::string value;
+  std::variant<std::string, int, float> value;
 };
 
 } // namespace wasmabi

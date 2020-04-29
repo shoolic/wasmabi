@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(Select) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Select);
 }
 BOOST_AUTO_TEST_CASE(Let) {
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(Let) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Let);
 }
 BOOST_AUTO_TEST_CASE(If) {
@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(If) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::If);
 }
 BOOST_AUTO_TEST_CASE(Loop) {
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(Loop) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Loop);
 }
 BOOST_AUTO_TEST_CASE(Print) {
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(Print) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Print);
 }
 BOOST_AUTO_TEST_CASE(Fn) {
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(Fn) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Fn);
 }
 BOOST_AUTO_TEST_CASE(Return) {
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(Return) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Return);
 }
 BOOST_AUTO_TEST_CASE(When) {
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(When) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::When);
 }
 BOOST_AUTO_TEST_CASE(Otherwise) {
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(Otherwise) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Otherwise);
 }
 BOOST_AUTO_TEST_CASE(And) {
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(And) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::AndOperator);
 }
 BOOST_AUTO_TEST_CASE(Or) {
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(Or) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::OrOperator);
 }
 BOOST_AUTO_TEST_CASE(Not) {
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(Not) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::NotOperator);
 }
 BOOST_AUTO_TEST_CASE(Int) {
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE(Int) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntTypename);
 }
 BOOST_AUTO_TEST_CASE(Float) {
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(Float) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatTypename);
 }
 BOOST_AUTO_TEST_CASE(String) {
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(String) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::StringTypename);
 }
 BOOST_AUTO_TEST_CASE(Void) {
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(Void) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::VoidTypename);
 }
 

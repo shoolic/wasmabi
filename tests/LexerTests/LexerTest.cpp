@@ -2,6 +2,7 @@
 #include "SourceController/SourceController.hpp"
 #include "Token/Token.hpp"
 #include "helpers/NullOstream.hpp"
+#include "helpers/VariantOstream.hpp"
 
 #include <boost/test/unit_test.hpp>
 #include <sstream>
@@ -18,7 +19,7 @@ BOOST_AUTO_TEST_CASE(NullStream) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Eof);
 }
 
@@ -28,7 +29,7 @@ BOOST_AUTO_TEST_CASE(UnknownChar) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
@@ -38,8 +39,18 @@ BOOST_AUTO_TEST_CASE(CommentSkip) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Eof);
+}
+
+BOOST_AUTO_TEST_CASE(CommentSkipNoEnd) {
+  std::stringstream ss{"@test"};
+  SourceController sourceController(ss);
+  ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
+  Lexer lexer(sourceController, errorHandler);
+  Token token = lexer.nextToken();
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
+  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
 BOOST_AUTO_TEST_CASE(StringLiteral) {
@@ -49,7 +60,19 @@ BOOST_AUTO_TEST_CASE(StringLiteral) {
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::StringLiteral);
-  BOOST_CHECK_EQUAL(token.getValue(), "This is a string literal");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()),
+                    "This is a string literal");
+}
+
+BOOST_AUTO_TEST_CASE(StringLiteralNoEnd) {
+  std::stringstream ss{"\"This is a string literal"};
+  SourceController sourceController(ss);
+  ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
+  Lexer lexer(sourceController, errorHandler);
+  Token token = lexer.nextToken();
+  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()),
+                    "This is a string literal");
 }
 
 BOOST_AUTO_TEST_CASE(IntLiteral) {
@@ -58,7 +81,7 @@ BOOST_AUTO_TEST_CASE(IntLiteral) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "12123");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "12123");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
 }
 
@@ -68,7 +91,7 @@ BOOST_AUTO_TEST_CASE(FloatLiteral) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "102.01023");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "102.01023");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
 }
 
@@ -78,7 +101,7 @@ BOOST_AUTO_TEST_CASE(IntUnexpectedZero) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "0");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
@@ -88,7 +111,7 @@ BOOST_AUTO_TEST_CASE(FloatExpectedDigitAfterDot) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "1.");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "1.");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
@@ -98,7 +121,7 @@ BOOST_AUTO_TEST_CASE(FloatTwoDots) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "1.2");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "1.2");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
@@ -108,7 +131,7 @@ BOOST_AUTO_TEST_CASE(CommentSkipWithFollowingToken) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), "1.2");
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "1.2");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
 }
 
@@ -118,7 +141,7 @@ BOOST_AUTO_TEST_CASE(OpeningParenthesis) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::OpeningParenthesis);
 }
 
@@ -128,7 +151,7 @@ BOOST_AUTO_TEST_CASE(ClosingParenthesis) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::ClosingParenthesis);
 }
 
@@ -138,7 +161,7 @@ BOOST_AUTO_TEST_CASE(OpeningBracket) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::OpeningBracket);
 }
 
@@ -148,7 +171,7 @@ BOOST_AUTO_TEST_CASE(ClosingBracket) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::ClosingBracket);
 }
 
@@ -158,7 +181,7 @@ BOOST_AUTO_TEST_CASE(AddOperator) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::AddOperator);
 }
 
@@ -168,7 +191,7 @@ BOOST_AUTO_TEST_CASE(SubOperator) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::SubOperator);
 }
 
@@ -178,7 +201,7 @@ BOOST_AUTO_TEST_CASE(MulOperator) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::MulOperator);
 }
 
@@ -188,7 +211,7 @@ BOOST_AUTO_TEST_CASE(DivOperator) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::DivOperator);
 }
 
@@ -198,7 +221,7 @@ BOOST_AUTO_TEST_CASE(PowOperator) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::PowOperator);
 }
 
@@ -208,7 +231,7 @@ BOOST_AUTO_TEST_CASE(TypeOperator) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::TypeOperator);
 }
 
@@ -218,7 +241,7 @@ BOOST_AUTO_TEST_CASE(Comma) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Comma);
 }
 
@@ -228,7 +251,7 @@ BOOST_AUTO_TEST_CASE(Semicolon) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getValue(), ss.str());
+  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ss.str());
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Semicolon);
 }
 
@@ -252,27 +275,27 @@ BOOST_AUTO_TEST_CASE(IntVariableDefinition) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntTypename);
-    BOOST_CHECK_EQUAL(token.getValue(), "int");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "int");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::AssignmentOperator);
-    BOOST_CHECK_EQUAL(token.getValue(), "=");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "=");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(token.getValue(), "12");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "12");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::Semicolon);
-    BOOST_CHECK_EQUAL(token.getValue(), ";");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ";");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::Eof);
-    BOOST_CHECK_EQUAL(token.getValue(), "");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
   }
 }
 

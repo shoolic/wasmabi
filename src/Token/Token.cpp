@@ -4,7 +4,9 @@ namespace wasmabi {
 
 Token::Token() : type(Token::Type::Unknown) {}
 
-const std::string Token::getValue() const { return value; }
+const std::variant<std::string, int, float> Token::getValue() const {
+  return value;
+}
 
 Token::Type Token::getType() const { return type; }
 

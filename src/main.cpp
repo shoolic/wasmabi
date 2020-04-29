@@ -2,6 +2,8 @@
 #include "Lexer/Lexer.hpp"
 #include "SourceController/SourceController.hpp"
 #include "Token/Token.hpp"
+#include "helpers/VariantOstream.hpp"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>

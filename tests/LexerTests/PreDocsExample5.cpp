@@ -25,62 +25,62 @@ BOOST_AUTO_TEST_CASE(PreDocsExample5) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::Identifier);
-    BOOST_CHECK_EQUAL(token.getValue(), "x");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "x");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::AssignmentOperator);
-    BOOST_CHECK_EQUAL(token.getValue(), "=");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "=");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::OpeningParenthesis);
-    BOOST_CHECK_EQUAL(token.getValue(), "(");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "(");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
-    BOOST_CHECK_EQUAL(token.getValue(), "2.1");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "2.1");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::AddOperator);
-    BOOST_CHECK_EQUAL(token.getValue(), "+");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "+");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
-    BOOST_CHECK_EQUAL(token.getValue(), "3.7");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "3.7");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::ClosingParenthesis);
-    BOOST_CHECK_EQUAL(token.getValue(), ")");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ")");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::MulOperator);
-    BOOST_CHECK_EQUAL(token.getValue(), "*");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "*");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::SubOperator);
-    BOOST_CHECK_EQUAL(token.getValue(), "-");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "-");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
-    BOOST_CHECK_EQUAL(token.getValue(), "0.6");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0.6");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::Semicolon);
-    BOOST_CHECK_EQUAL(token.getValue(), ";");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), ";");
   }
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::Eof);
-    BOOST_CHECK_EQUAL(token.getValue(), "");
+    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
   }
   file.close();
 }

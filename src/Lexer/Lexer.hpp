@@ -3,7 +3,9 @@
 #include "../Errors/ErrorHandler.hpp"
 #include "../SourceController/SourceController.hpp"
 #include "../Token/Token.hpp"
+#include <functional>
 #include <map>
+#include <optional>
 namespace wasmabi {
 
 class Lexer {
@@ -17,6 +19,7 @@ private:
 
   void skipWhitespaces();
   bool trySkipComment(Token &token);
+  bool tryEnd(Token &token);
   bool tryStringLiteral(Token &token);
   bool tryNumericLiteral(Token &token);
   bool trySingleCharToken(Token &token);
@@ -35,7 +38,7 @@ private:
     Token::Type typeIfNextNotMatched;
     Token::Type typeIfNextMatched;
   };
-
+  std::vector<std::function<bool(Token &)>> entryFunctions;
   static std::map<std::string, Token::Type> keywords;
   static std::map<char, Token::Type> singleCharMap;
   static std::map<char, potentiallyDoubleChar> potentiallyDoubleCharMap;

@@ -3,40 +3,27 @@
 #include <iostream>
 namespace wasmabi {
 Lexer::Lexer(SourceController &sourceController_, ErrorHandler &errorHandler_)
-    : sourceController(sourceController_), errorHandler(errorHandler_) {}
+    : sourceController(sourceController_), errorHandler(errorHandler_),
+      entryFunctions{
+          [this](Token &token) -> bool { return trySkipComment(token); },
+          [this](Token &token) -> bool { return tryEnd(token); },
+          [this](Token &token) -> bool { return tryStringLiteral(token); },
+          [this](Token &token) -> bool { return tryNumericLiteral(token); },
+          [this](Token &token) -> bool { return trySingleCharToken(token); },
+          [this](Token &token) -> bool { return tryDoubleCharToken(token); },
+          [this](Token &token) -> bool {
+            return tryIdentifierOrKeyword(token);
+          },
+      } {}
 
 const Token Lexer::nextToken() {
   Token token;
 
-  if (trySkipComment(token)) {
-    return token;
-  }
-
-  skipWhitespaces();
-
-  if (sourceController.end()) {
-    token.setType(Token::Type::Eof);
-    return token;
-  }
-
-  if (tryStringLiteral(token)) {
-    return token;
-  }
-
-  if (tryNumericLiteral(token)) {
-    return token;
-  }
-
-  if (trySingleCharToken(token)) {
-    return token;
-  }
-
-  if (tryDoubleCharToken(token)) {
-    return token;
-  }
-
-  if (tryIdentifierOrKeyword(token)) {
-    return token;
+  for (auto &tryEntryFunction : entryFunctions) {
+    skipWhitespaces();
+    if (tryEntryFunction(token)) {
+      return token;
+    }
   }
 
   errorHandler.registerLexicalError(Error::Lexical::InvalidToken);
@@ -68,22 +55,34 @@ bool Lexer::trySkipComment(Token &token) {
   return false;
 }
 
+bool Lexer::tryEnd(Token &token) {
+  if (sourceController.end()) {
+    token.setType(Token::Type::Eof);
+    return true;
+  }
+
+  return false;
+}
+
 bool Lexer::tryStringLiteral(Token &token) {
+  std::string value;
+
   if (sourceController.peek() == Boundaries::Quote) {
     token.setType(Token::Type::StringLiteral);
     sourceController.get();
     char c = '\0';
 
     while ((c = sourceController.get()) != Boundaries::Quote) {
-      token.value += c;
+      value += c;
       if (sourceController.end()) {
         errorHandler.registerLexicalError(Error::Lexical::NoQuoteEnd);
+        token.value = value;
         token.setType(Token::Type::Invalid);
-
         return true;
       }
     }
 
+    token.value = value;
     return true;
   }
 
@@ -91,48 +90,58 @@ bool Lexer::tryStringLiteral(Token &token) {
 }
 
 bool Lexer::tryNumericLiteral(Token &token) {
-  if (isdigit(sourceController.peek())) {
-    token.setType(Token::Type::IntLiteral);
-    char c = sourceController.get();
-    token.value += c;
+  if (!isdigit(sourceController.peek())) {
+    return false;
+  }
 
-    if (c == '0' && isdigit(sourceController.peek())) {
-      token.setType(Token::Type::Invalid);
-      errorHandler.registerLexicalError(Error::Lexical::UnexpectedZero);
+  std::string value;
+  token.setType(Token::Type::IntLiteral);
+  char c = sourceController.get();
+  value += c;
+
+  if (c == '0' && isdigit(sourceController.peek())) {
+    token.setType(Token::Type::Invalid);
+    token.value = value;
+    errorHandler.registerLexicalError(Error::Lexical::UnexpectedZero);
+    return true;
+  }
+
+  while (true) {
+    if (sourceController.peek() == '.') {
+      if (token.type == Token::Type::FloatLiteral) {
+        errorHandler.registerLexicalError(Error::Lexical::ExtraDot);
+        token.setType(Token::Type::Invalid);
+        token.value = value;
+
+        return true;
+      } else {
+        token.setType(Token::Type::FloatLiteral);
+        value += sourceController.get();
+        if (!isdigit(sourceController.peek())) {
+          errorHandler.registerLexicalError(Error::Lexical::ExpectedDigit);
+          token.setType(Token::Type::Invalid);
+          token.value = value;
+
+          return true;
+        }
+      }
+    } else if (!isdigit(sourceController.peek())) {
+      token.value = value;
+
       return true;
     }
 
-    while (true) {
-      if (sourceController.peek() == '.') {
-        if (token.type == Token::Type::FloatLiteral) {
-          errorHandler.registerLexicalError(Error::Lexical::ExtraDot);
-          token.setType(Token::Type::Invalid);
-          return true;
-        } else {
-          token.setType(Token::Type::FloatLiteral);
-          token.value += sourceController.get();
-          if (!isdigit(sourceController.peek())) {
-            errorHandler.registerLexicalError(Error::Lexical::ExpectedDigit);
-            token.setType(Token::Type::Invalid);
-            return true;
-          }
-        }
-      } else if (!isdigit(sourceController.peek())) {
-        return true;
-      }
-
-      token.value += sourceController.get();
-    }
+    value += sourceController.get();
   }
 
-  return false;
+  return true;
 }
 
 bool Lexer::trySingleCharToken(Token &token) {
   auto it = singleCharMap.find(sourceController.peek());
 
   if (it != singleCharMap.end()) {
-    token.value += sourceController.get();
+    token.value = std::string(1, sourceController.get());
     token.setType(it->second);
     return true;
   }
@@ -142,16 +151,20 @@ bool Lexer::trySingleCharToken(Token &token) {
 
 bool Lexer::tryDoubleCharToken(Token &token) {
   auto it = potentiallyDoubleCharMap.find(sourceController.peek());
+  std::string value;
 
   if (it != potentiallyDoubleCharMap.end()) {
-    token.value += sourceController.get();
+    value += sourceController.get();
 
     if (sourceController.peek() == it->second.next) {
-      token.value += sourceController.get();
+      value += sourceController.get();
+
+      token.value = value;
       token.setType(it->second.typeIfNextMatched);
       return true;
     }
 
+    token.value = value;
     token.setType(it->second.typeIfNextNotMatched);
     return true;
   }
@@ -160,11 +173,17 @@ bool Lexer::tryDoubleCharToken(Token &token) {
 }
 
 bool Lexer::tryIdentifierOrKeyword(Token &token) {
+
+  std::string value;
+
   if (isIdentifierChar(sourceController.peek())) {
     token.setType(Token::Type::Identifier);
+
     while (isIdentifierChar(sourceController.peek())) {
-      token.value += sourceController.get();
+      value += sourceController.get();
     }
+
+    token.value = value;
 
     tryKeyword(token);
 
@@ -175,7 +194,7 @@ bool Lexer::tryIdentifierOrKeyword(Token &token) {
 }
 
 bool Lexer::tryKeyword(Token &token) {
-  auto it = keywords.find(token.value);
+  auto it = keywords.find(std::get<std::string>(token.value));
   if (it != keywords.end()) {
     token.setType(it->second);
     return true;
