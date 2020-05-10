@@ -10,3 +10,5 @@ CXX=g++-8 cmake --build . --target wasmabiTests
     cd ${work_dir};
     ./bin/Tests/wasmabiTests;
 }
+
+

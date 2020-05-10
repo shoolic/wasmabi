@@ -2,6 +2,7 @@
 #define WASMABI_ERRORHANDLER_HPP
 
 #include "../SourceController/SourceController.hpp"
+#include "../Token/Token.hpp"
 #include "ErrorTypes.hpp"
 #include <iostream>
 
@@ -11,6 +12,7 @@ class ErrorHandler {
 public:
   ErrorHandler(SourceController &sourceController_, std::ostream &ostream);
   void registerLexicalError(Error::Lexical error);
+  void registerUnexpectedTokenError(Token got, Token::Type expected);
 
 private:
   SourceController &sourceController;
