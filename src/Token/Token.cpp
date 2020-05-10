@@ -64,4 +64,18 @@ std::map<Token::Type, std::string> Token::map = {
 std::ostream &operator<<(std::ostream &out, const Token::Type &type) {
   return out << Token::map[type];
 }
+
+bool operator==(const Token &token, const Token::Type &type) {
+  return token.type == type;
+}
+
+bool operator!=(const Token &token, const Token::Type &type) {
+  return token.type != type;
+}
+
+bool Token::operator==(const Token &token) {
+  return type == token.type && value == token.value;
+}
+bool Token::operator!=(const Token &token) { return !((*this) == token); }
+
 } // namespace wasmabi

@@ -68,7 +68,7 @@ public:
     Unknown
   };
 
-  struct potentiallyDoubleChar {
+  struct potentiallyDoubleChar { // TODO move to lexer
     char current;
     char next;
     Type typeIfNextNotMatched;
@@ -76,12 +76,16 @@ public:
   };
 
   static std::map<Type, std::string> map;
-  friend std::ostream &operator<<(std::ostream &os, const Token::Type &dt);
 
   const std::variant<std::string, int, float> getValue() const;
   Token::Type getType() const;
   void setType(Token::Type type);
 
+  bool operator==(const Token &token);
+  bool operator!=(const Token &token);
+  friend bool operator==(const Token &token, const Token::Type &type);
+  friend bool operator!=(const Token &token, const Token::Type &type);
+  friend std::ostream &operator<<(std::ostream &os, const Token::Type &dt);
   friend class Lexer;
 
 private:

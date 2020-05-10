@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(CommentSkip) {
 }
 
 BOOST_AUTO_TEST_CASE(CommentSkipNoEnd) {
-  std::stringstream ss{"@test"};
+  std::stringstream ss{"\n@test"};
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
