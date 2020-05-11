@@ -3,7 +3,7 @@ Wasmabi is a simple language and a compiler to LLVM IR created for Compilers cla
 
 
 # Level of development
-Program prints list of token type and token value (lexer implementation).
+Program prints AST after parsing.
 
 # Release
 ```
