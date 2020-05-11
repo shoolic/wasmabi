@@ -13,7 +13,7 @@ public:
   Parser(Lexer &lexer_, ErrorHandler &errorHandler_, std::ostream &output_);
   std::unique_ptr<Program> parse();
 
-public:
+private:
   std::unique_ptr<FunctionDefinition> createFunctionDefinition();
   void parseFunctionDefinitionParameters(
       std::unique_ptr<FunctionDefinition> &functionDefinition);

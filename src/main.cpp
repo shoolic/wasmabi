@@ -38,6 +38,8 @@ int main(int argc, char *argv[]) {
 
   Parser parser(lexer, errorHandler, std::cout);
   auto a = parser.parse();
+
+  std::cout << "AST:" << std::endl;
   a->print(0);
   std::cout << std::endl;
 

@@ -54,7 +54,6 @@ Parser::Parser(Lexer &lexer_, ErrorHandler &errorHandler_,
            }},
           {Token::Type::OpeningParenthesis,
            [&](Token t) -> std::unique_ptr<ValueExpression> {
-             // TODO
              auto ret = createValueExpression();
              expect(next(), Token::Type::ClosingParenthesis);
              return ret;
@@ -96,18 +95,18 @@ Parser::Parser(Lexer &lexer_, ErrorHandler &errorHandler_,
 {}
 
 std::unique_ptr<Program> Parser::parse() {
+  auto program = std::make_unique<Program>();
   try {
-    auto program = std::make_unique<Program>();
-
     while (peek() != Token::Type::Eof && peek() != Token::Type::Invalid) {
       program->functionDefintions.push_back(
           std::move(createFunctionDefinition()));
     }
 
     return program;
-  } catch (std::exception *e) {
-    // std::cout << e->what();
+  } catch (SyntaxError *e) {
+    errorHandler.registerSyntaxError(e);
   }
+  return program;
 }
 
 bool Parser::expect(Token token, Token::Type type) {
@@ -158,7 +157,7 @@ std::unique_ptr<FunctionType> Parser::createFunctionReturnedType() {
     return std::make_unique<FunctionType>(it->second);
   }
 
-  throw UnknownFunRetType(t);
+  throw new UnknownFunRetType(t);
 }
 
 std::unique_ptr<Block> Parser::createBlock() {
@@ -201,7 +200,7 @@ std::unique_ptr<VariableType> Parser::createVariableType(Token t) {
     return std::make_unique<VariableType>(it->second);
   }
 
-  throw UnknownVarRetType(t);
+  throw new UnknownVarRetType(t);
 }
 
 void Parser::skipTypeOperator() { expect(next(), Token::Type::TypeOperator); }
@@ -213,7 +212,7 @@ std::unique_ptr<Statement> Parser::createStatement() {
     return it->second();
   }
 
-  throw StatementError(peekToken);
+  throw new StatementError(peekToken);
 }
 
 std::unique_ptr<LoopStatement> Parser::createLoopStatement() {
@@ -301,7 +300,7 @@ Parser::createVariableDefinitionStatement() {
     return variableDefinitionWithAssignmentStatement;
   }
 
-  throw VariableDefinitionStatementError(determiner);
+  throw new VariableDefinitionStatementError(determiner);
 }
 
 std::unique_ptr<VariableAssignmentStatement>
@@ -369,7 +368,7 @@ std::unique_ptr<SelectExpression> Parser::createSelectExpression() {
       select->otherwiseCaseValue = std::move(valueExpr);
       break;
     } else {
-      throw SelectExpressionError(t);
+      throw new SelectExpressionError(t);
     }
   }
 
@@ -400,10 +399,6 @@ std::unique_ptr<ValueExpression> Parser::nud(Token t) {
       auto ret = std::make_unique<UnaryExpression>(it->second);
       ret->operand = nud(next());
       return ret;
-
-      // TODO CHECK MOVE SEMANTIC, IT WORKS HERE BUT NOT IN BinaryExpr
-      // return std::make_unique<UnaryExpression>(it->second,
-      //                                          std::move(nud(next())));
     }
   }
   {
@@ -412,8 +407,6 @@ std::unique_ptr<ValueExpression> Parser::nud(Token t) {
       auto ret = std::make_unique<Literal>(it->second);
       ret->value = t.getValue();
       return ret;
-      // TODO CHECK MOVE SEMANTIC, IT WORKS HERE BUT NOT IN BinaryExpr
-      // return std::make_unique<Literal>(it->second, t.getValue());
     }
   }
 
@@ -439,11 +432,6 @@ Parser::led(std::unique_ptr<ValueExpression> left, Token oper) {
       ret->leftOperand = std::move(left);
       ret->rightOperand = std::move(right);
       return ret;
-
-      //  TDODO: CHECK WHY IT DOESN'T WORK
-      //  return std::make_unique<BinaryExpression>(
-      //   it->second, std::move(left),
-      //   (createValueExpression(bindingPower(oper))));
     }
   }
 
@@ -453,11 +441,6 @@ Parser::led(std::unique_ptr<ValueExpression> left, Token oper) {
     ret->leftOperand = std::move(left);
     ret->rightOperand = std::move(right);
     return ret;
-
-    //  TODO: CHECK WHY IT DOESN'T WORK
-    // return std::make_unique<BinaryExpression>(
-    //     BinaryExpression::Type::Pow, std::move(left),
-    //     (createValueExpression(bindingPower(oper) - 1)));
   }
 
   throw new ValueExpressionLedError(oper);
@@ -468,8 +451,7 @@ int Parser::bindingPower(Token t) {
   if (it != bindingPowerMap.end()) {
     return it->second;
   }
-  // error
-  return -1;
+  throw new UnexpectedTokenValExprError(t);
 }
 
 bool Parser::isExpressionTerminator(Token t) {
@@ -498,13 +480,20 @@ Token Parser::peek() {
 }
 
 std::map<Token::Type, int> Parser::bindingPowerMap = {
-    // {Token::Type::ClosingParenthesis, 0},
-    {Token::Type::AddOperator, 10},    {Token::Type::SubOperator, 10},
-    {Token::Type::MulOperator, 20},    {Token::Type::DivOperator, 20},
-    {Token::Type::PowOperator, 40},    {Token::Type::Greater, 50},
-    {Token::Type::GreaterOrEqual, 50}, {Token::Type::Less, 50},
-    {Token::Type::LessOrEqual, 50},    {Token::Type::Equals, 50},
-    {Token::Type::NotEquals, 10},      {Token::Type::OrOperator, 10},
-    {Token::Type::AndOperator, 10},    {Token::Type::NotOperator, 10},
+    {Token::Type::ClosingParenthesis, 0},
+    {Token::Type::AddOperator, 10},
+    {Token::Type::SubOperator, 10},
+    {Token::Type::MulOperator, 20},
+    {Token::Type::DivOperator, 20},
+    {Token::Type::PowOperator, 40},
+    {Token::Type::Greater, 50},
+    {Token::Type::GreaterOrEqual, 50},
+    {Token::Type::Less, 50},
+    {Token::Type::LessOrEqual, 50},
+    {Token::Type::Equals, 50},
+    {Token::Type::NotEquals, 10},
+    {Token::Type::OrOperator, 10},
+    {Token::Type::AndOperator, 10},
+    {Token::Type::NotOperator, 10},
 };
 } // namespace wasmabi

@@ -25,52 +25,70 @@ private:
 
 class SyntaxError : public std::exception {
 public:
-  SyntaxError();
+  SyntaxError(Token got_);
+  Token got;
+  virtual const char *what();
 };
 
 class UnexpectedToken : public SyntaxError {
 public:
-  UnexpectedToken(Token got, Token::Type expected);
+  UnexpectedToken(Token got_, Token::Type expected_);
+  const char *what();
+  Token::Type expected;
 };
 
 class UnknownFunRetType : public SyntaxError {
 public:
-  UnknownFunRetType(Token got);
+  UnknownFunRetType(Token got_);
+  const char *what();
 };
 
 class UnknownVarRetType : public SyntaxError {
 public:
-  UnknownVarRetType(Token got);
+  UnknownVarRetType(Token got_);
+  const char *what();
 };
 
 class StatementError : public SyntaxError {
 public:
-  StatementError(Token got);
+  StatementError(Token got_);
+  const char *what();
 };
 
 class StatmentWithIdentifierError : public SyntaxError {
 public:
-  StatmentWithIdentifierError(Token got);
+  StatmentWithIdentifierError(Token got_);
+  const char *what();
 };
 
 class VariableDefinitionStatementError : public SyntaxError {
 public:
-  VariableDefinitionStatementError(Token got);
+  VariableDefinitionStatementError(Token got_);
+  const char *what();
 };
 
 class SelectExpressionError : public SyntaxError {
 public:
-  SelectExpressionError(Token got);
+  SelectExpressionError(Token got_);
+  const char *what();
 };
 
 class ValueExpressionNudError : public SyntaxError {
 public:
-  ValueExpressionNudError(Token got);
+  ValueExpressionNudError(Token got_);
+  const char *what();
 };
 
 class ValueExpressionLedError : public SyntaxError {
 public:
-  ValueExpressionLedError(Token got);
+  ValueExpressionLedError(Token got_);
+  const char *what();
+};
+
+class UnexpectedTokenValExprError : public SyntaxError {
+public:
+  UnexpectedTokenValExprError(Token got_);
+  const char *what();
 };
 
 } // namespace wasmabi

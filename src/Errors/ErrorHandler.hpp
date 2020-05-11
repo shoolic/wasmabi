@@ -12,7 +12,7 @@ class ErrorHandler {
 public:
   ErrorHandler(SourceController &sourceController_, std::ostream &ostream);
   void registerLexicalError(Error::Lexical error);
-  void registerUnexpectedTokenError(Token got, Token::Type expected);
+  void registerSyntaxError(SyntaxError *e);
 
 private:
   SourceController &sourceController;
