@@ -34,8 +34,6 @@ const char *UnexpectedToken::what() {
 
 UnknownFunRetType::UnknownFunRetType(Token got_) : SyntaxError(got_) {}
 const char *UnknownFunRetType::what() {
-  // std::stringstream message;
-  // message << "Incorrect function type, got " << got.getType();
   return "Incorrect function return type\n";
 }
 

@@ -13,10 +13,13 @@ public:
   ErrorHandler(SourceController &sourceController_, std::ostream &ostream);
   void registerLexicalError(Error::Lexical error);
   void registerSyntaxError(SyntaxError *e);
+  void registerUnexpectedTokenSyntaxError(UnexpectedToken *e);
 
 private:
   SourceController &sourceController;
   std::ostream &ostream;
+
+  std::ostream &pre();
 };
 
 } // namespace wasmabi

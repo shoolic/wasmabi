@@ -103,6 +103,8 @@ std::unique_ptr<Program> Parser::parse() {
     }
 
     return program;
+  } catch (UnexpectedToken *e) {
+    errorHandler.registerUnexpectedTokenSyntaxError(e);
   } catch (SyntaxError *e) {
     errorHandler.registerSyntaxError(e);
   }
@@ -141,10 +143,11 @@ void Parser::parseFunctionDefinitionParameters(
   while (peek() != Token::Type::ClosingParenthesis) {
     functionDefinition->parameters.push_back(
         std::move(createFunctionDefinitonParameter()));
-    if (peek() == Token::Type::Comma) {
-      next();
+    if (peek() != Token::Type::ClosingParenthesis) {
+      expect(next(), Token::Type::Comma);
     }
   }
+
   expect(next(), Token::Type::ClosingParenthesis);
 }
 
