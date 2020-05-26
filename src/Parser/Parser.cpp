@@ -384,6 +384,7 @@ std::unique_ptr<ValueExpression> Parser::createValueExpression(int rbp) {
 
   if (isExpressionTerminator(peek())) {
     return std::make_unique<NullExpression>();
+    // TODO error?
   }
 
   Token t = next();
@@ -426,6 +427,14 @@ std::unique_ptr<ValueExpression> Parser::nud(Token t) {
 std::unique_ptr<ValueExpression>
 Parser::led(std::unique_ptr<ValueExpression> left, Token oper) {
 
+  if (oper.getType() == Token::Type::PowOperator) {
+    auto right = createValueExpression(bindingPower(oper) - 1);
+    auto ret = std::make_unique<BinaryExpression>(BinaryExpression::Type::Pow);
+    ret->leftOperand = std::move(left);
+    ret->rightOperand = std::move(right);
+    return ret;
+  }
+
   {
     auto it = tokenToBinExprTypeMap.find(oper.getType());
     if (it != tokenToBinExprTypeMap.end()) {
@@ -436,14 +445,6 @@ Parser::led(std::unique_ptr<ValueExpression> left, Token oper) {
       ret->rightOperand = std::move(right);
       return ret;
     }
-  }
-
-  if (oper.getType() == Token::Type::PowOperator) {
-    auto right = createValueExpression(bindingPower(oper));
-    auto ret = std::make_unique<BinaryExpression>(BinaryExpression::Type::Pow);
-    ret->leftOperand = std::move(left);
-    ret->rightOperand = std::move(right);
-    return ret;
   }
 
   throw new ValueExpressionLedError(oper);
