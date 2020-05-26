@@ -1,217 +1,6 @@
 #include "Node.hpp"
 #include "../helpers/VariantOstream.hpp"
 namespace wasmabi {
-
-void Node::printIndent(int nest) const {
-  while (nest--) {
-    std::cout << "  ";
-  }
-}
-
-void Program::print(int nest) const {
-
-  printIndent(nest);
-  std::cout << "Program" << std::endl;
-
-  for (auto &x : functionDefintions) {
-    x->print(nest + 1);
-  }
-
-  std::cout << std::endl;
-}
-void FunctionDefinition::print(int nest) const {
-  printIndent(nest);
-  std::cout << "FunctionDefinition" << std::endl;
-
-  printIndent(nest + 1);
-  std::cout << "Identifier " << identifier << std::endl;
-
-  returnedType->print(nest + 1);
-
-  printIndent(nest + 1);
-  std::cout << "FunctionDefinitionParameters" << std::endl;
-  for (auto &x : parameters) {
-    x->print(nest + 2);
-  }
-
-  block->print(nest + 1);
-}
-
-void FunctionDefinitionParameter::print(int nest) const {
-  printIndent(nest);
-
-  std::cout << "FunctionDefinitionParameter" << std::endl;
-  identifier->print(nest + 1);
-  type->print(nest + 1);
-}
-
-void Block::print(int nest) const {
-  printIndent(nest);
-  std::cout << "Block" << std::endl;
-  for (auto &x : instructions) {
-    if (x.index() == 0) {
-      std::get<std::unique_ptr<Block>>(x)->print(nest + 1);
-    } else if (x.index() == 1) {
-      std::get<std::unique_ptr<Statement>>(x)->print(nest + 1);
-    }
-  }
-}
-void LoopStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "LoopStatement" << std::endl;
-
-  printIndent(nest + 1);
-  std::cout << "condition" << std::endl;
-  condition->print(nest + 2);
-
-  block->print(nest + 1);
-}
-void IfStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "IfStatement" << std::endl;
-
-  printIndent(nest + 1);
-  std::cout << "condition" << std::endl;
-  condition->print(nest + 2);
-
-  block->print(nest + 1);
-}
-
-void ReturnStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "ReturnStatement" << std::endl;
-  printIndent(nest + 1);
-  std::cout << "Value" << std::endl;
-  value->print(nest + 2);
-}
-
-void PrintStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "PrintStatement" << std::endl;
-  printIndent(nest + 1);
-  std::cout << "Value" << std::endl;
-  value->print(nest + 2);
-}
-
-void VariableDefinitionStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "VariableDefinitionStatement" << std::endl;
-  type->print(nest + 1);
-}
-
-void VariableDefinitionWithAssignmentStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "VariableDefinitionWithAssignmentStatement" << std::endl;
-  identifier->print(nest + 1);
-  type->print(nest + 1);
-  printIndent(nest + 1);
-  std::cout << "Value" << std::endl;
-  value->print(nest + 2);
-}
-
-void VariableAssignmentStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "VariableAssignmentStatement" << std::endl;
-  identifier->print(nest + 1);
-  value->print(nest + 2);
-}
-
-void FunctionCallStatement::print(int nest) const {
-  printIndent(nest);
-  std::cout << "FunctionCallStatement" << std::endl;
-  functionCallExpression->print(nest + 1);
-}
-
-void VariableType::print(int nest) const {
-  printIndent(nest);
-  std::cout << "VariableType "
-            << static_cast<std::underlying_type<Type>::type>(type) << std::endl;
-}
-
-void FunctionType::print(int nest) const {
-  printIndent(nest);
-  std::cout << "FunctionType "
-            << static_cast<std::underlying_type<Type>::type>(type) << std::endl;
-}
-
-void Identifier::print(int nest) const {
-  printIndent(nest);
-  std::cout << "Identifier " << name << std::endl;
-}
-void SelectExpression::print(int nest) const {
-  printIndent(nest);
-  std::cout << "SelectExpression" << std::endl;
-
-  printIndent(nest + 1);
-  std::cout << "Cases" << std::endl;
-  for (auto &x : cases) {
-    x->print(nest + 2);
-  }
-
-  printIndent(nest + 1);
-  std::cout << "OtherwiseCaseValue" << std::endl;
-  otherwiseCaseValue->print(nest + 2);
-}
-void SelectExpressionCase::print(int nest) const {
-  printIndent(nest);
-  std::cout << "SelectExpressionCase" << std::endl;
-
-  printIndent(nest + 1);
-  std::cout << "Value" << std::endl;
-  value->print(nest + 2);
-
-  printIndent(nest + 1);
-  std::cout << "Condition" << std::endl;
-  condition->print(nest + 2);
-}
-void IdentifierAsExpression::print(int nest) const {
-  // printIndent(nest);
-  // std::cout << "IdentifierAsExpression" << std::endl;
-  // identifier->print(nest + 1);
-  identifier->print(nest);
-}
-void FunctionCallExpression::print(int nest) const {
-  printIndent(nest);
-  std::cout << "FunctionCallExpression" << std::endl;
-  printIndent(nest + 1);
-  std::cout << "Parameters" << std::endl;
-  for (auto &x : parameters) {
-    printIndent(nest + 2);
-    std::cout << "Parameter" << std::endl;
-    x->print(nest + 3);
-  }
-}
-void Literal::print(int nest) const {
-  printIndent(nest);
-  std::cout << "Literal " << value << std::endl;
-}
-void NullExpression::print(int nest) const {
-  printIndent(nest);
-  std::cout << "null";
-}
-void BinaryExpression::print(int nest) const {
-  printIndent(nest);
-  std::cout << "BinaryExpression "
-            << static_cast<std::underlying_type<Type>::type>(type) << std::endl;
-
-  printIndent(nest + 1);
-  std::cout << "LeftOperand" << std::endl;
-  leftOperand->print(nest + 2);
-
-  printIndent(nest + 1);
-  std::cout << "RightOperand" << std::endl;
-  rightOperand->print(nest + 2);
-}
-
-void UnaryExpression::print(int nest) const {
-  printIndent(nest);
-  std::cout << "UnaryExpression "
-            << static_cast<std::underlying_type<Type>::type>(type) << std::endl;
-  printIndent(nest + 1);
-  std::cout << "Operand" << std::endl;
-  operand->print(nest + 2);
-}
-
 FunctionType::FunctionType(Type type_) : type(type_) {}
 
 VariableType::VariableType(Type type_) : type(type_) {}
@@ -232,5 +21,61 @@ BinaryExpression::BinaryExpression(
 Literal::Literal(Type type_) : type(type_) {}
 Literal::Literal(Type type_, std::variant<std::string, int, float> value_)
     : type(type_), value(value_) {}
+
+std::map<UnaryExpression::Type, std::string> UnaryExpression::map = {{
+    {UnaryExpression::Type::Minus, "-"},
+    {UnaryExpression::Type::Not, "not"},
+}};
+
+std::map<BinaryExpression::Type, std::string> BinaryExpression::map = {{
+    {BinaryExpression::Type::Add, "+"},
+    {BinaryExpression::Type::Sub, "-"},
+    {BinaryExpression::Type::Mul, "*"},
+    {BinaryExpression::Type::Div, "/"},
+    {BinaryExpression::Type::Pow, "^"},
+    {BinaryExpression::Type::And, "and"},
+    {BinaryExpression::Type::Or, "or"},
+    {BinaryExpression::Type::Not, "not"},
+    {BinaryExpression::Type::Equals, "=="},
+    {BinaryExpression::Type::NotEquals, "!="},
+    {BinaryExpression::Type::Greater, ">"},
+    {BinaryExpression::Type::GreaterOrEqual, ">="},
+    {BinaryExpression::Type::Less, "<"},
+    {BinaryExpression::Type::LessOrEqual, "<="},
+}};
+
+void Program::accept(Visitor &visitor) { visitor.visit(*this); }
+void Identifier::accept(Visitor &visitor) { visitor.visit(*this); }
+void Literal::accept(Visitor &visitor) { visitor.visit(*this); }
+void VariableType::accept(Visitor &visitor) { visitor.visit(*this); }
+void FunctionType::accept(Visitor &visitor) { visitor.visit(*this); }
+void Block::accept(Visitor &visitor) { visitor.visit(*this); }
+void FunctionDefinition::accept(Visitor &visitor) { visitor.visit(*this); }
+void FunctionDefinitionParameter::accept(Visitor &visitor) {
+  visitor.visit(*this);
+}
+void NullExpression::accept(Visitor &visitor) { visitor.visit(*this); }
+void FunctionCallExpression::accept(Visitor &visitor) { visitor.visit(*this); }
+void IdentifierAsExpression::accept(Visitor &visitor) { visitor.visit(*this); }
+// void ValueExpression::accept(Visitor &visitor) { visitor.visit(*this); }
+void UnaryExpression::accept(Visitor &visitor) { visitor.visit(*this); }
+void BinaryExpression::accept(Visitor &visitor) { visitor.visit(*this); }
+void SelectExpression::accept(Visitor &visitor) { visitor.visit(*this); }
+void SelectExpressionCase::accept(Visitor &visitor) { visitor.visit(*this); }
+// void Statement::accept(Visitor &visitor) { visitor.visit(*this); }
+void LoopStatement::accept(Visitor &visitor) { visitor.visit(*this); }
+void IfStatement::accept(Visitor &visitor) { visitor.visit(*this); }
+void ReturnStatement::accept(Visitor &visitor) { visitor.visit(*this); }
+void PrintStatement::accept(Visitor &visitor) { visitor.visit(*this); }
+void VariableDefinitionStatement::accept(Visitor &visitor) {
+  visitor.visit(*this);
+}
+void VariableDefinitionWithAssignmentStatement::accept(Visitor &visitor) {
+  visitor.visit(*this);
+}
+void VariableAssignmentStatement::accept(Visitor &visitor) {
+  visitor.visit(*this);
+}
+void FunctionCallStatement::accept(Visitor &visitor) { visitor.visit(*this); }
 
 } // namespace wasmabi
