@@ -242,7 +242,9 @@ void PrintVisitor::visit(ReturnStatement &node) {
   printIndent();
   std::cout << "Value" << std::endl;
   nest += 1;
-  node.value->accept(*this);
+  if (node.value) {
+    node.value->accept(*this);
+  }
   nest -= 2;
 }
 

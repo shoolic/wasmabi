@@ -245,7 +245,12 @@ std::unique_ptr<ReturnStatement> Parser::createReturnStatement() {
 
   expect(next(), Token::Type::Return);
 
-  ret->value = createValueExpression();
+  if (peek() == Token::Type::Semicolon) {
+    ret->value = nullptr;
+  } else {
+    ret->value = createValueExpression();
+  }
+
   expect(next(), Token::Type::Semicolon);
   return ret;
 }
@@ -387,8 +392,8 @@ std::unique_ptr<SelectExpression> Parser::createSelectExpression() {
 std::unique_ptr<ValueExpression> Parser::createValueExpression(int rbp) {
 
   if (isExpressionTerminator(peek())) {
-    // return nullptr;
-    return std::make_unique<NullExpression>();
+    return nullptr;
+    // return std::make_unique<NullExpression>();
     // TODO error?
   }
 
