@@ -263,15 +263,14 @@ std::unique_ptr<Statement> Parser::createStatementFromIdentifier() {
   Token identifier = next();
   expect(identifier, Token::Type::Identifier);
 
-  Token t2 = next();
-  if (t2.getType() == Token::Type::AssignmentOperator) {
+  if (peek() == Token::Type::AssignmentOperator) {
     return createVariableAssignmentStatement(identifier);
   }
-  if (t2.getType() == Token::Type::OpeningParenthesis) {
+  if (peek() == Token::Type::OpeningParenthesis) {
     return createFunctionCallStatement(identifier);
   }
 
-  throw new StatmentWithIdentifierError(t2);
+  throw new StatmentWithIdentifierError(peek());
 }
 
 std::unique_ptr<VariableDefinitionStatement>
@@ -311,6 +310,7 @@ Parser::createVariableAssignmentStatement(Token t) {
   auto variableAssignmentStatement =
       std::make_unique<VariableAssignmentStatement>();
   variableAssignmentStatement->identifier = createIdentifier(t);
+  expect(next(), Token::Type::AssignmentOperator);
   variableAssignmentStatement->value = createValueExpression();
 
   expect(next(), Token::Type::Semicolon);
@@ -335,10 +335,14 @@ Parser::createFunctionCallExpression(Token t) {
   functionCallExpression->identifier = createIdentifier(t);
   t = next();
 
-  while (t != Token::Type::ClosingParenthesis) {
-    functionCallExpression->parameters.push_back(
-        std::move(createValueExpression()));
-    t = next();
+  if (peek() != Token::Type::ClosingParenthesis) {
+    while (t != Token::Type::ClosingParenthesis) {
+      functionCallExpression->parameters.push_back(
+          std::move(createValueExpression()));
+      t = next();
+    }
+  } else {
+    next();
   }
 
   return functionCallExpression;
@@ -383,6 +387,7 @@ std::unique_ptr<SelectExpression> Parser::createSelectExpression() {
 std::unique_ptr<ValueExpression> Parser::createValueExpression(int rbp) {
 
   if (isExpressionTerminator(peek())) {
+    // return nullptr;
     return std::make_unique<NullExpression>();
     // TODO error?
   }
@@ -469,8 +474,8 @@ Token Parser::next() {
     peeked = false;
     return currentToken;
   }
-
-  return lexer.nextToken();
+  auto t = lexer.nextToken();
+  return t;
 }
 
 Token Parser::peek() {
