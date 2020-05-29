@@ -126,7 +126,12 @@ bool Lexer::tryNumericLiteral(Token &token) {
         }
       }
     } else if (!isdigit(sourceController.peek())) {
-      token.value = value;
+
+      if (token.type == Token::Type::FloatLiteral) {
+        token.value = float(std::atof(value.c_str()));
+      } else if (token.type == Token::Type::IntLiteral) {
+        token.value = std::atoi(value.c_str());
+      }
 
       return true;
     }

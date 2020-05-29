@@ -1,5 +1,6 @@
 #include "ParenthesisPrintVisitor.hpp"
-
+#include "../helpers/VariantOstream.hpp"
+#include <sstream>
 namespace wasmabi {
 
 std::string
@@ -11,7 +12,9 @@ ParenthesisPrintVisitor::getString(ValueExpression &valueExpression) {
 }
 
 void ParenthesisPrintVisitor::visit(Literal &node) {
-  output += "(" + std::get<std::string>(node.value) + ")";
+  std::stringstream s;
+  s << node.value;
+  output += "(" + s.str() + ")";
 }
 
 void ParenthesisPrintVisitor::visit(NullExpression &node) {
@@ -78,7 +81,6 @@ std::map<BinaryExpression::Type, std::string>
         {BinaryExpression::Type::Pow, "^"},
         {BinaryExpression::Type::And, "and"},
         {BinaryExpression::Type::Or, "or"},
-        {BinaryExpression::Type::Not, "not"},
         {BinaryExpression::Type::Equals, "=="},
         {BinaryExpression::Type::NotEquals, "!="},
         {BinaryExpression::Type::Greater, ">"},

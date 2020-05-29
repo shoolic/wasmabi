@@ -1,4 +1,5 @@
 #include "PrintVisitor.hpp"
+#include "../helpers/VariantOstream.hpp"
 
 namespace wasmabi {
 
@@ -26,7 +27,7 @@ void PrintVisitor::visit(Identifier &node) {
 
 void PrintVisitor::visit(Literal &node) {
   printIndent();
-  std::cout << "Literal " << std::get<std::string>(node.value) << std::endl;
+  std::cout << "Literal " << node.value << std::endl;
 }
 
 void PrintVisitor::visit(VariableType &node) {
@@ -104,7 +105,7 @@ void PrintVisitor::visit(FunctionCallExpression &node) {
   printIndent();
   std::cout << "FunctionCallExpression" << std::endl;
   nest += 1;
-
+  printIndent();
   std::cout << "Parameters" << std::endl;
   nest += 1;
 
