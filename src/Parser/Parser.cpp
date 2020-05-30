@@ -288,11 +288,26 @@ Parser::createVariableDefinitionStatement() {
 
   if (determiner == Token::Type::Semicolon) {
     auto variableDefinitionStatement =
-        std::make_unique<VariableDefinitionStatement>();
+        std::make_unique<VariableDefinitionWithAssignmentStatement>();
     variableDefinitionStatement->identifier = createIdentifier(identifier);
     variableDefinitionStatement->type = createVariableType(type);
-    expect(next(), Token::Type::Semicolon);
 
+    switch (variableDefinitionStatement->type->type) {
+    case VariableType::Type::Float:
+      variableDefinitionStatement->value =
+          std::make_unique<Literal>(Literal::Type::Float, 0.0f);
+      break;
+    case VariableType::Type::Int:
+      variableDefinitionStatement->value =
+          std::make_unique<Literal>(Literal::Type::Int, 0);
+      break;
+    case VariableType::Type::String:
+      variableDefinitionStatement->value =
+          std::make_unique<Literal>(Literal::Type::String, "");
+      break;
+    }
+
+    // expect(next(), Token::Type::Semicolon);
     return variableDefinitionStatement;
   } else if (determiner == Token::Type::AssignmentOperator) {
     auto variableDefinitionWithAssignmentStatement =
