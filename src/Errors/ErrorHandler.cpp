@@ -14,7 +14,7 @@ void ErrorHandler::registerLexicalError(Error::Lexical error) {
 
 std::ostream &ErrorHandler::pre() {
   return ostream << OstreamModifier::RED << OstreamModifier::BOLD
-                 << "Lexical Error:" << std::endl
+                 << "Error:" << std::endl
                  << OstreamModifier::END << OstreamModifier::BOLD
                  << sourceController.getSourcePath() << ":"
                  << sourceController.getCurrentLineNumber() << ":"

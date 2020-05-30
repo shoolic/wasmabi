@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../Visitor/Visitor.hpp"
+#include "llvm/IR/IRBuilder.h"
 
 namespace wasmabi {
 
@@ -37,15 +38,26 @@ struct VariableAssignmentStatement;
 struct FunctionCallStatement;
 
 class Visitor;
+class Generator;
+
+#define ACCEPT_VISITOR void accept(Visitor &visitor) override;
+
+#define ACCEPT_GENERATOR llvm::Value *gen(Generator &generator) override;
+
+#define ACCEPT_GENERATOR_NULL_RETURN                                           \
+  llvm::Value *gen(Generator &generator) override;
 
 struct Node {
   virtual void accept(Visitor &visit) = 0;
+
+  virtual llvm::Value *gen(Generator &gen) = 0;
 };
 
 struct Program : public Node {
   std::vector<std::unique_ptr<FunctionDefinition>> functionDefintions;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct FunctionDefinition : public Node {
@@ -54,21 +66,24 @@ struct FunctionDefinition : public Node {
   std::unique_ptr<Block> block;
   std::unique_ptr<FunctionType> returnedType;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR_NULL_RETURN
 };
 
 struct FunctionDefinitionParameter : public Node {
   std::unique_ptr<Identifier> identifier;
   std::unique_ptr<VariableType> type;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct Block : public Node {
   std::vector<std::variant<std::unique_ptr<Block>, std::unique_ptr<Statement>>>
       instructions;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct Statement : public Node {};
@@ -77,64 +92,73 @@ struct LoopStatement : public Statement {
   std::unique_ptr<ValueExpression> condition;
   std::unique_ptr<Block> block;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct IfStatement : public Statement {
   std::unique_ptr<ValueExpression> condition;
   std::unique_ptr<Block> block;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct ReturnStatement : public Statement {
   std::unique_ptr<ValueExpression> value;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct PrintStatement : public Statement {
   std::unique_ptr<ValueExpression> value;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct VariableDefinitionStatement : public Statement {
   std::unique_ptr<Identifier> identifier;
   std::unique_ptr<VariableType> type;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct VariableDefinitionWithAssignmentStatement
     : public VariableDefinitionStatement {
   std::unique_ptr<ValueExpression> value;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct VariableAssignmentStatement : public Statement {
   std::unique_ptr<Identifier> identifier;
   std::unique_ptr<ValueExpression> value;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct FunctionCallStatement : public Statement {
   std::unique_ptr<FunctionCallExpression> functionCallExpression;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct Identifier : public Node {
   std::string name;
   Identifier(std::string name_) : name(name_){};
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct VariableType : public Node {
-  enum class Type {
+  enum Type {
     Int,
     Float,
     String,
@@ -143,7 +167,8 @@ struct VariableType : public Node {
   Type type;
   VariableType(Type type_);
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR_NULL_RETURN
 };
 
 struct FunctionType : public Node {
@@ -151,7 +176,8 @@ struct FunctionType : public Node {
   Type type;
   FunctionType(Type type_);
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR_NULL_RETURN
 };
 
 struct ValueExpression : public Node {
@@ -161,28 +187,32 @@ struct ValueExpression : public Node {
 struct IdentifierAsExpression : public ValueExpression {
   std::unique_ptr<Identifier> identifier;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct FunctionCallExpression : public ValueExpression {
   std::unique_ptr<Identifier> identifier;
   std::vector<std::unique_ptr<ValueExpression>> parameters;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct SelectExpression : public ValueExpression {
   std::vector<std::unique_ptr<SelectExpressionCase>> cases;
   std::unique_ptr<ValueExpression> otherwiseCaseValue;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct SelectExpressionCase : public Node {
   std::unique_ptr<ValueExpression> condition;
   std::unique_ptr<ValueExpression> value;
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct UnaryExpression : public ValueExpression {
@@ -196,7 +226,8 @@ struct UnaryExpression : public ValueExpression {
   UnaryExpression(Type type_);
   UnaryExpression(Type type_, std::unique_ptr<ValueExpression> operand_);
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct BinaryExpression : public ValueExpression {
@@ -208,7 +239,7 @@ struct BinaryExpression : public ValueExpression {
     Pow,
     And,
     Or,
-    Not,
+    // Not,
     Equals,
     NotEquals,
     Greater,
@@ -225,7 +256,8 @@ struct BinaryExpression : public ValueExpression {
   BinaryExpression(Type type_, std::unique_ptr<ValueExpression> leftOperand_,
                    std::unique_ptr<ValueExpression> rightOperand_);
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct Literal : public ValueExpression {
@@ -235,12 +267,14 @@ struct Literal : public ValueExpression {
   Literal(Type type_, std::variant<std::string, int, float> value_);
   Literal(Type type_);
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 struct NullExpression : public ValueExpression {
 
-  void accept(Visitor &visitor) override;
+  ACCEPT_VISITOR
+  ACCEPT_GENERATOR
 };
 
 } // namespace wasmabi

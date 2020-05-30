@@ -1,4 +1,5 @@
 #include "Errors/ErrorHandler.hpp"
+#include "Generator/Generator.hpp"
 #include "Lexer/Lexer.hpp"
 #include "ParenthesisPrintVisitor/ParenthesisPrintVisitor.hpp"
 #include "Parser/Parser.hpp"
@@ -27,11 +28,11 @@ int main(int argc, char *argv[]) {
 
   auto ast = parser.parse();
 
-  std::cout << "AST:" << std::endl;
   PrintVisitor printer;
-  ParenthesisPrintVisitor parenthesisPrinter;
-
   printer.visit(*ast);
+
+  Generator generator(std::cout);
+  generator.gen(*ast);
 
   return 0;
 }

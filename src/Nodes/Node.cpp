@@ -1,5 +1,8 @@
 #include "Node.hpp"
 #include "../helpers/VariantOstream.hpp"
+
+#include "../Generator/Generator.hpp"
+
 namespace wasmabi {
 FunctionType::FunctionType(Type type_) : type(type_) {}
 
@@ -35,7 +38,7 @@ std::map<BinaryExpression::Type, std::string> BinaryExpression::map = {{
     {BinaryExpression::Type::Pow, "^"},
     {BinaryExpression::Type::And, "and"},
     {BinaryExpression::Type::Or, "or"},
-    {BinaryExpression::Type::Not, "not"},
+    // {BinaryExpression::Type::Not, "not"},
     {BinaryExpression::Type::Equals, "=="},
     {BinaryExpression::Type::NotEquals, "!="},
     {BinaryExpression::Type::Greater, ">"},
@@ -77,5 +80,74 @@ void VariableAssignmentStatement::accept(Visitor &visitor) {
   visitor.visit(*this);
 }
 void FunctionCallStatement::accept(Visitor &visitor) { visitor.visit(*this); }
+
+llvm::Value *Program::gen(Generator &generator) { return generator.gen(*this); }
+llvm::Value *Identifier::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *Literal::gen(Generator &generator) { return generator.gen(*this); }
+llvm::Value *VariableType::gen(Generator &generator) {
+  generator.gen(*this);
+  return nullptr;
+}
+llvm::Value *FunctionType::gen(Generator &generator) {
+  generator.gen(*this);
+  return nullptr;
+}
+llvm::Value *Block::gen(Generator &generator) { return generator.gen(*this); }
+llvm::Value *FunctionDefinition::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *FunctionDefinitionParameter::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *NullExpression::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *FunctionCallExpression::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *IdentifierAsExpression::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+
+llvm::Value *UnaryExpression::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *BinaryExpression::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *SelectExpression::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *SelectExpressionCase::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+
+llvm::Value *LoopStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *IfStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *ReturnStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *PrintStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *VariableDefinitionStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *
+VariableDefinitionWithAssignmentStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *VariableAssignmentStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
+llvm::Value *FunctionCallStatement::gen(Generator &generator) {
+  return generator.gen(*this);
+}
 
 } // namespace wasmabi

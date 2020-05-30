@@ -1,9 +1,102 @@
 #ifndef WASMABI_GENERATOR_HPP
 #define WASMABI_GENERATOR_HPP
 
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
+#include "llvm/ExecutionEngine/SectionMemoryManager.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Support/TargetSelect.h"
+
+// #include "../Nodes/Node.hpp"
+
 namespace wasmabi {
 
-class Generator {};
+struct Program;
+struct Identifier;
+struct Literal;
+struct VariableType;
+
+struct FunctionType;
+struct Block;
+struct FunctionDefinition;
+struct FunctionDefinitionParameter;
+struct NullExpression;
+struct FunctionCallExpression;
+struct IdentifierAsExpression;
+struct ValueExpression;
+struct UnaryExpression;
+struct BinaryExpression;
+struct SelectExpression;
+struct SelectExpressionCase;
+struct Statement;
+struct LoopStatement;
+struct IfStatement;
+struct ReturnStatement;
+struct PrintStatement;
+struct VariableDefinitionStatement;
+struct VariableDefinitionWithAssignmentStatement;
+struct VariableAssignmentStatement;
+struct FunctionCallStatement;
+
+class Generator {
+public:
+  Generator(std::ostream &output_);
+  // llvm::Value* gen(Node &node);
+  llvm::Value *gen(Program &node);
+  llvm::Function *gen(FunctionDefinition &node);
+  llvm::Value *gen(FunctionDefinitionParameter &node);
+  llvm::Value *gen(Identifier &node);
+  llvm::Value *gen(Literal &node);
+  llvm::Type *gen(VariableType &node);
+  llvm::Type *gen(FunctionType &node);
+  llvm::Value *gen(Block &node);
+  llvm::Value *gen(NullExpression &node);
+  llvm::Value *gen(FunctionCallExpression &node);
+  llvm::Value *gen(IdentifierAsExpression &node);
+  // llvm::Value* gen(ValueExpression &node);
+  llvm::Value *gen(UnaryExpression &node);
+  llvm::Value *gen(BinaryExpression &node);
+  llvm::Value *gen(SelectExpression &node);
+  llvm::Value *gen(SelectExpressionCase &node);
+  // llvm::Value* gen(Statement &node);
+  llvm::Value *gen(LoopStatement &node);   // v
+  llvm::Value *gen(IfStatement &node);     // v
+  llvm::Value *gen(ReturnStatement &node); // v
+  llvm::Value *gen(PrintStatement &node);  // v
+  llvm::Value *gen(VariableDefinitionStatement &node);
+  llvm::Value *gen(VariableDefinitionWithAssignmentStatement &node);
+  llvm::Value *gen(VariableAssignmentStatement &node);
+  llvm::Value *gen(FunctionCallStatement &node); // v
+
+private:
+  std::ostream &output;
+  llvm::LLVMContext context;
+  llvm::IRBuilder<> builder{context};
+  std::unique_ptr<llvm::Module> module;
+  // static std::map<std::string, llvm::AllocaInst *> NamedValues;
+  // static std::map<std::string, std::unique_ptr<llvm::PrototypeAST>>
+  //     FunctionProtos;
+
+  std::set<llvm::StringLiteral> stringLiterals;
+  llvm::Constant *getStringLiteral(std::string str);
+
+  llvm::FunctionCallee printFun();
+  std::map<std::string, llvm::Value *> values;
+
+
+  llvm::Value * genFloatBinExpr(BinaryExpression &node, llvm::Value *leftValue, llvm::Value *rightValue);
+  llvm::Value * genIntBinExpr(BinaryExpression &node, llvm::Value *leftValue, llvm::Value *rightValue);
+
+  bool isString(llvm::Value *value);
+  bool isInt(llvm::Value *value);
+  bool isFloat(llvm::Value *value);
+  bool isBool(llvm::Value *value);
+
+  bool sameType(llvm::Value *value1, llvm::Value *value2);
+};
 
 } // namespace wasmabi
 
