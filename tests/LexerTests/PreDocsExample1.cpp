@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "1");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 1);
   }
   {
     Token token = lexer.nextToken();
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 0);
   }
   {
     Token token = lexer.nextToken();
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 0);
   }
   {
     Token token = lexer.nextToken();
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 0);
   }
   {
     Token token = lexer.nextToken();
@@ -354,7 +354,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "2");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 2);
   }
   {
     Token token = lexer.nextToken();
@@ -364,7 +364,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "3");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 3);
   }
   {
     Token token = lexer.nextToken();
@@ -409,7 +409,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "2");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 2);
   }
   {
     Token token = lexer.nextToken();
@@ -489,7 +489,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample1) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 0);
   }
   {
     Token token = lexer.nextToken();

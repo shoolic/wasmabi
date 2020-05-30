@@ -81,17 +81,17 @@ BOOST_AUTO_TEST_CASE(IntLiteral) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "12123");
+  BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 12123);
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
 }
 
 BOOST_AUTO_TEST_CASE(FloatLiteral) {
-  std::stringstream ss{"102.01023"};
+  std::stringstream ss{"102.03125"};
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "102.01023");
+  BOOST_CHECK_EQUAL(std::get<float>(token.getValue()), 102.03125);
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
 }
 
@@ -101,7 +101,6 @@ BOOST_AUTO_TEST_CASE(IntUnexpectedZero) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
@@ -111,7 +110,6 @@ BOOST_AUTO_TEST_CASE(FloatExpectedDigitAfterDot) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "1.");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
@@ -121,17 +119,16 @@ BOOST_AUTO_TEST_CASE(FloatTwoDots) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "1.2");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
 }
 
 BOOST_AUTO_TEST_CASE(CommentSkipWithFollowingToken) {
-  std::stringstream ss{"@test@1.2"};
+  std::stringstream ss{"@test@1.25"};
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "1.2");
+  BOOST_CHECK_EQUAL(std::get<float>(token.getValue()), 1.25);
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
 }
 
@@ -285,7 +282,7 @@ BOOST_AUTO_TEST_CASE(IntVariableDefinition) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "12");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 12);
   }
   {
     Token token = lexer.nextToken();

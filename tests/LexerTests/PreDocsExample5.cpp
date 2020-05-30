@@ -40,7 +40,8 @@ BOOST_AUTO_TEST_CASE(PreDocsExample5) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "2.1");
+    BOOST_TEST(std::get<float>(token.getValue()) == 2.1,
+               boost::test_tools::tolerance(0.001));
   }
   {
     Token token = lexer.nextToken();
@@ -50,7 +51,8 @@ BOOST_AUTO_TEST_CASE(PreDocsExample5) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "3.7");
+    BOOST_TEST(std::get<float>(token.getValue()) == 3.7,
+               boost::test_tools::tolerance(0.001));
   }
   {
     Token token = lexer.nextToken();
@@ -70,7 +72,8 @@ BOOST_AUTO_TEST_CASE(PreDocsExample5) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::FloatLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "0.6");
+    BOOST_TEST(std::get<float>(token.getValue()) == 0.6,
+               boost::test_tools::tolerance(0.001));
   }
   {
     Token token = lexer.nextToken();

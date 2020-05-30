@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample2) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "75");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 75);
   }
   {
     Token token = lexer.nextToken();
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(PreDocsExample2) {
   {
     Token token = lexer.nextToken();
     BOOST_CHECK_EQUAL(token.getType(), Token::Type::IntLiteral);
-    BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "50");
+    BOOST_CHECK_EQUAL(std::get<int>(token.getValue()), 50);
   }
   {
     Token token = lexer.nextToken();
