@@ -38,7 +38,6 @@ std::map<BinaryExpression::Type, std::string> BinaryExpression::map = {{
     {BinaryExpression::Type::Pow, "^"},
     {BinaryExpression::Type::And, "and"},
     {BinaryExpression::Type::Or, "or"},
-    // {BinaryExpression::Type::Not, "not"},
     {BinaryExpression::Type::Equals, "=="},
     {BinaryExpression::Type::NotEquals, "!="},
     {BinaryExpression::Type::Greater, ">"},
@@ -58,12 +57,10 @@ void FunctionDefinitionParameter::accept(Visitor &visitor) {
 }
 void FunctionCallExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 void IdentifierAsExpression::accept(Visitor &visitor) { visitor.visit(*this); }
-// void ValueExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 void UnaryExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 void BinaryExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 void SelectExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 void SelectExpressionCase::accept(Visitor &visitor) { visitor.visit(*this); }
-// void Statement::accept(Visitor &visitor) { visitor.visit(*this); }
 void LoopStatement::accept(Visitor &visitor) { visitor.visit(*this); }
 void IfStatement::accept(Visitor &visitor) { visitor.visit(*this); }
 void ReturnStatement::accept(Visitor &visitor) { visitor.visit(*this); }
@@ -93,7 +90,7 @@ llvm::Value *FunctionDefinition::gen(Generator &generator) {
   return generator.gen(*this);
 }
 llvm::Value *FunctionDefinitionParameter::gen(Generator &generator) {
-  return generator.gen(*this);
+  return nullptr;
 }
 
 llvm::Value *FunctionCallExpression::gen(Generator &generator) {
@@ -112,9 +109,7 @@ llvm::Value *BinaryExpression::gen(Generator &generator) {
 llvm::Value *SelectExpression::gen(Generator &generator) {
   return generator.gen(*this);
 }
-llvm::Value *SelectExpressionCase::gen(Generator &generator) {
-  return generator.gen(*this);
-}
+llvm::Value *SelectExpressionCase::gen(Generator &generator) { return nullptr; }
 
 llvm::Value *LoopStatement::gen(Generator &generator) {
   return generator.gen(*this);

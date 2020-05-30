@@ -7,7 +7,6 @@ Generator::Generator(std::ostream &output_)
     : output(output_), /* builder(context),*/
       module(std::make_unique<llvm::Module>("wasmabi", context)) {}
 
-// llvm::Value* gen(Node &node);
 llvm::Value *Generator::gen(Program &node) {
 
   for (auto &funDef : node.functionDefintions) {
@@ -15,12 +14,25 @@ llvm::Value *Generator::gen(Program &node) {
   }
 
   for (auto &funDef : node.functionDefintions) {
-    auto fun = module->getFunction(funDef->identifier);
+    auto function = module->getFunction(funDef->identifier);
     llvm::BasicBlock *functionBlock =
-        llvm::BasicBlock::Create(context, "entry", fun);
+        llvm::BasicBlock::Create(context, "entry", function);
     builder.SetInsertPoint(functionBlock);
+
+    values.push_back(std::map<std::string, llvm::Value *>{});
+
+    unsigned idx = 0;
+    for (auto &arg : function->args()) {
+      llvm::AllocaInst *alloca = builder.CreateAlloca(
+          arg.getType(), 0, funDef->parameters[idx]->identifier.c_str());
+
+      builder.CreateStore(static_cast<llvm::Value *>(&arg), alloca);
+      insertVar(funDef->parameters[idx]->identifier, alloca);
+      idx++;
+    }
+
     auto functionBlockValue = funDef->block->gen(*this);
-    llvm::verifyFunction(*fun);
+    llvm::verifyFunction(*function);
   }
 
   module->print(llvm::errs(), nullptr);
@@ -49,16 +61,8 @@ llvm::Function *Generator::gen(FunctionDefinition &node) {
       functionDeclaration, llvm::Function::ExternalLinkage, node.identifier,
       module.get());
 
-  unsigned idx = 0;
-
-  for (auto &arg : function->args()) {
-    arg.setName(node.parameters[idx++]->identifier);
-  }
-
   return function;
 }
-
-llvm::Value *Generator::gen(Identifier &node) { return nullptr; }
 
 llvm::Value *Generator::gen(Literal &node) {
   switch (node.type) {
@@ -71,34 +75,32 @@ llvm::Value *Generator::gen(Literal &node) {
   case Literal::Type::String:
     return getStringLiteral(std::get<std::string>(node.value));
   default:
-    throw std::exception();
+    return nullptr;
   }
 }
 
 llvm::Constant *Generator::getStringLiteral(std::string str) {
+  auto it = globalStrings.find(str);
+  if (it != globalStrings.end()) {
+    return it->second;
+  }
+
   auto charType = llvm::Type::getInt8Ty(context);
   auto stringType = llvm::ArrayType::get(charType, str.size() + 1);
 
-  auto stringLiteral = module->getOrInsertGlobal(str, stringType);
-  if (stringLiteral) {
-    return llvm::ConstantExpr::getBitCast(stringLiteral,
-                                          llvm::Type::getInt8PtrTy(context));
-  }
+  auto stringInitializer =
+      llvm::ConstantDataArray::getString(context, str.c_str(), true);
 
-  std::vector<llvm::Constant *> chars(str.size());
-  for (std::size_t i = 0; i < str.size(); i++) {
-    chars[i] = llvm::ConstantInt::get(charType, str[i]);
-  }
-  chars.push_back(llvm::ConstantInt::get(charType, 0));
-
-  auto stringInitializer = llvm::ConstantArray::get(stringType, chars);
-
-  stringLiteral = new llvm::GlobalVariable(
+  auto stringLiteral = new llvm::GlobalVariable(
       *module, stringType, true, llvm::GlobalVariable::ExternalLinkage,
       stringInitializer, str);
 
-  return llvm::ConstantExpr::getBitCast(stringLiteral,
-                                        llvm::Type::getInt8PtrTy(context));
+  auto stringConst = llvm::ConstantExpr::getBitCast(
+      stringLiteral, llvm::Type::getInt8PtrTy(context));
+
+  globalStrings[str] = stringConst;
+
+  return stringConst;
 }
 
 llvm::Type *Generator::gen(VariableType &node) {
@@ -110,7 +112,7 @@ llvm::Type *Generator::gen(VariableType &node) {
   case VariableType::Type::String:
     return llvm::Type::getInt8PtrTy(context);
   default:
-    throw std::exception();
+    return nullptr;
   }
 }
 
@@ -125,26 +127,25 @@ llvm::Type *Generator::gen(FunctionType &node) {
   case FunctionType::Type::Void:
     return llvm::Type::getVoidTy(context);
   default:
-    throw std::exception();
+    return nullptr;
   }
 }
 
 llvm::Value *Generator::gen(Block &node) {
-
   for (auto &instr : node.instructions) {
     if (instr.index() == 0) {
+      values.push_back(std::map<std::string, llvm::Value *>{});
       std::get<std::unique_ptr<Block>>(instr)->gen(*this);
     }
+
     if (instr.index() == 1) {
       std::get<std::unique_ptr<Statement>>(instr)->gen(*this);
     }
   }
 
-  return nullptr;
-}
+  values.pop_back();
 
-llvm::Value *Generator::gen(FunctionDefinitionParameter &node) {
-  return nullptr;
+  return builder.GetInsertBlock();
 }
 
 llvm::Value *Generator::gen(FunctionCallExpression &node) {
@@ -160,17 +161,8 @@ llvm::Value *Generator::gen(FunctionCallExpression &node) {
 }
 
 llvm::Value *Generator::gen(IdentifierAsExpression &node) {
-  // check if exists!!
-
-  auto it = values.find(node.identifier);
-  if (it == values.end()) {
-    std::runtime_error("no variable with given name");
-  }
-
-  return builder.CreateLoad(it->second, node.identifier.c_str());
+  return builder.CreateLoad(getVar(node.identifier), node.identifier.c_str());
 }
-
-// llvm::Value* Generator::gen(ValueExpression &node) { return nullptr; }
 
 llvm::Value *Generator::gen(UnaryExpression &node) {
 
@@ -401,8 +393,6 @@ llvm::Value *Generator::gen(SelectExpression &node) {
   return PHINode;
 }
 
-llvm::Value *Generator::gen(SelectExpressionCase &node) { return nullptr; }
-// llvm::Value* Generator::gen(Statement &node) { return nullptr; }
 llvm::Value *Generator::gen(LoopStatement &node) {
   auto currentBlock = builder.GetInsertBlock()->getParent();
 
@@ -426,9 +416,6 @@ llvm::Value *Generator::gen(LoopStatement &node) {
 
 llvm::Value *Generator::gen(IfStatement &node) {
   auto conditionValue = node.condition->gen(*this);
-  // conditionValue = builder.CreateFCmpONE(
-  //     conditionValue, llvm::ConstantFP::get(context, llvm::APFloat(0.0)));
-
   auto currentBlock = builder.GetInsertBlock()->getParent();
   llvm::BasicBlock *ifBlock =
       llvm::BasicBlock::Create(context, "ifblock", currentBlock);
@@ -440,7 +427,6 @@ llvm::Value *Generator::gen(IfStatement &node) {
   builder.SetInsertPoint(ifBlock);
 
   auto ifBlockValue = node.block->gen(*this);
-  // builder.CreateBr(ifContinueBlock);
 
   builder.SetInsertPoint(ifContinueBlock);
   currentBlock->getBasicBlockList().push_back(ifContinueBlock);
@@ -454,13 +440,14 @@ llvm::Value *Generator::gen(ReturnStatement &node) {
   if (node.value) {
     auto retVal = node.value->gen(*this);
     if (function->getReturnType() != retVal->getType()) {
-      throw std::exception();
+      throw std::runtime_error(
+          "function returned type and value type does not match");
     }
     return builder.CreateRet(retVal);
   }
 
   if (function->getType() != llvm::Type::getVoidTy(context)) {
-    throw std::exception();
+    throw std::runtime_error("function of type void cannot return value");
   }
 
   return builder.CreateRetVoid();
@@ -484,7 +471,7 @@ llvm::Value *Generator::gen(PrintStatement &node) {
     return builder.CreateCall(printFun(), args);
   }
 
-  return nullptr;
+  throw std::runtime_error("cannot print variable of this type");
 }
 
 llvm::Value *Generator::gen(VariableDefinitionStatement &node) {
@@ -495,12 +482,12 @@ llvm::Value *Generator::gen(VariableDefinitionStatement &node) {
   const auto *rValuePtr = rValue->getType()->getPointerTo();
 
   if (rValuePtr != allocVar->getType()) {
-    throw std::exception();
+    throw std::runtime_error("type of value does not match variable type");
   }
 
   llvm::StoreInst *fullValue = builder.CreateStore(rValue, allocVar);
 
-  values[node.identifier] = allocVar;
+  insertVar(node.identifier, allocVar);
 
   return fullValue;
 }
@@ -508,7 +495,7 @@ llvm::Value *Generator::gen(VariableDefinitionStatement &node) {
 llvm::Value *Generator::gen(VariableAssignmentStatement &node) {
   llvm::Value *rValue = node.value->gen(*this);
 
-  llvm::Value *allocVar = values[node.identifier];
+  llvm::Value *allocVar = getVar(node.identifier);
 
   if (allocVar->getType() != rValue->getType()) {
     throw std::runtime_error("cannot assign, types differ");
@@ -541,6 +528,30 @@ bool Generator::isBool(llvm::Value *value) {
 
 bool Generator::sameType(llvm::Value *value1, llvm::Value *value2) {
   return value1->getType() == value2->getType();
+}
+
+llvm::Value *Generator::getVar(std::string name) {
+
+  for (auto it = values.rbegin(); it != values.rend(); it++) {
+    auto binding = it->find(name);
+
+    if (binding != it->end()) {
+      return binding->second;
+    }
+  }
+
+  throw std::runtime_error("no variable found");
+}
+
+void Generator::insertVar(std::string name, llvm::Value *value) {
+  auto &map = values.back();
+  auto it = map.find(name);
+
+  if (it != map.end()) {
+    throw std::runtime_error("variable already exists");
+  }
+
+  map[name] = value;
 }
 
 } // namespace wasmabi
