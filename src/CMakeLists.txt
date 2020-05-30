@@ -6,31 +6,21 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Og -g -Wshadow -Wall -p
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fdevirtualize -finline-functions -funroll-loops")
 set(EXECUTABLE_NAME ${PROJECT_NAME})
 
+set(LIB_NAME ${PROJECT_NAME}Lib)
 
-# MACRO(SUBDIRLIST result curdir)
-#   FILE(GLOB_RECURSE children curdir/*)
-#   SET(dirlist "")
-#   FOREACH(child ${children})
-#     IF(IS_DIRECTORY ${curdir}/${child})
-#       LIST(APPEND dirlist ${child})
-#     ENDIF()
-#   ENDFOREACH()
-#   SET(${result} ${dirlist})
-# ENDMACRO()
-
-# SUBDIRLIST(SUBDIRS ${PROJECT_SOURCE_DIR}/src)
-# FOREACH(subdir ${SUBDIRS})
-#   include_directories(${subdir})
-# ENDFOREACH()
 
 file(GLOB_RECURSE SOURCE_FILES "*.cpp")
 file(GLOB_RECURSE INCLUDE_FILES "*.hpp")
-# message(${INCLUDE_FILES})
-# include_directories(SUBDIRS)
+
+find_package(LLVM 10.0.0 REQUIRED CONFIG)
+include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIBRARY_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
 
 list(REMOVE_ITEM SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 add_library(${PROJECT_NAME}Lib STATIC ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME}Lib stdc++fs)
+target_link_libraries(${PROJECT_NAME}Lib stdc++fs LLVM)
+
 
 add_executable(${EXECUTABLE_NAME} "main.cpp" ${INCLUDE_FILES})
 target_link_libraries(${EXECUTABLE_NAME} 
