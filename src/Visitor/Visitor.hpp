@@ -6,14 +6,12 @@
 namespace wasmabi {
 
 struct Program;
-struct Identifier;
 struct Literal;
 struct VariableType;
 struct FunctionType;
 struct Block;
 struct FunctionDefinition;
 struct FunctionDefinitionParameter;
-struct NullExpression;
 struct FunctionCallExpression;
 struct IdentifierAsExpression;
 struct ValueExpression;
@@ -27,7 +25,6 @@ struct IfStatement;
 struct ReturnStatement;
 struct PrintStatement;
 struct VariableDefinitionStatement;
-struct VariableDefinitionWithAssignmentStatement;
 struct VariableAssignmentStatement;
 struct FunctionCallStatement;
 
@@ -35,14 +32,12 @@ class Visitor {
 public:
   // virtual void visit(Node &node) = 0;
   virtual void visit(Program &node) = 0;
-  virtual void visit(Identifier &node) = 0;
   virtual void visit(Literal &node) = 0;
   virtual void visit(VariableType &node) = 0;
   virtual void visit(FunctionType &node) = 0;
   virtual void visit(Block &node) = 0;
   virtual void visit(FunctionDefinition &node) = 0;
   virtual void visit(FunctionDefinitionParameter &node) = 0;
-  virtual void visit(NullExpression &node) = 0;
   virtual void visit(FunctionCallExpression &node) = 0;
   virtual void visit(IdentifierAsExpression &node) = 0;
   // virtual void visit(ValueExpression &node) = 0;
@@ -56,7 +51,6 @@ public:
   virtual void visit(ReturnStatement &node) = 0;
   virtual void visit(PrintStatement &node) = 0;
   virtual void visit(VariableDefinitionStatement &node) = 0;
-  virtual void visit(VariableDefinitionWithAssignmentStatement &node) = 0;
   virtual void visit(VariableAssignmentStatement &node) = 0;
   virtual void visit(FunctionCallStatement &node) = 0;
 };

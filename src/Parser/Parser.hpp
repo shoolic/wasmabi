@@ -21,7 +21,7 @@ private:
   std::unique_ptr<FunctionDefinitionParameter>
   createFunctionDefinitonParameter();
 
-  std::unique_ptr<Identifier> createIdentifier(Token t);
+  std::string createIdentifier(Token t);
   std::unique_ptr<VariableType> createVariableType(Token t);
   std::unique_ptr<Block> createBlock();
 

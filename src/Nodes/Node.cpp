@@ -48,7 +48,6 @@ std::map<BinaryExpression::Type, std::string> BinaryExpression::map = {{
 }};
 
 void Program::accept(Visitor &visitor) { visitor.visit(*this); }
-void Identifier::accept(Visitor &visitor) { visitor.visit(*this); }
 void Literal::accept(Visitor &visitor) { visitor.visit(*this); }
 void VariableType::accept(Visitor &visitor) { visitor.visit(*this); }
 void FunctionType::accept(Visitor &visitor) { visitor.visit(*this); }
@@ -57,7 +56,6 @@ void FunctionDefinition::accept(Visitor &visitor) { visitor.visit(*this); }
 void FunctionDefinitionParameter::accept(Visitor &visitor) {
   visitor.visit(*this);
 }
-void NullExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 void FunctionCallExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 void IdentifierAsExpression::accept(Visitor &visitor) { visitor.visit(*this); }
 // void ValueExpression::accept(Visitor &visitor) { visitor.visit(*this); }
@@ -73,18 +71,14 @@ void PrintStatement::accept(Visitor &visitor) { visitor.visit(*this); }
 void VariableDefinitionStatement::accept(Visitor &visitor) {
   visitor.visit(*this);
 }
-void VariableDefinitionWithAssignmentStatement::accept(Visitor &visitor) {
-  visitor.visit(*this);
-}
+
 void VariableAssignmentStatement::accept(Visitor &visitor) {
   visitor.visit(*this);
 }
 void FunctionCallStatement::accept(Visitor &visitor) { visitor.visit(*this); }
 
 llvm::Value *Program::gen(Generator &generator) { return generator.gen(*this); }
-llvm::Value *Identifier::gen(Generator &generator) {
-  return generator.gen(*this);
-}
+
 llvm::Value *Literal::gen(Generator &generator) { return generator.gen(*this); }
 llvm::Value *VariableType::gen(Generator &generator) {
   generator.gen(*this);
@@ -101,9 +95,7 @@ llvm::Value *FunctionDefinition::gen(Generator &generator) {
 llvm::Value *FunctionDefinitionParameter::gen(Generator &generator) {
   return generator.gen(*this);
 }
-llvm::Value *NullExpression::gen(Generator &generator) {
-  return generator.gen(*this);
-}
+
 llvm::Value *FunctionCallExpression::gen(Generator &generator) {
   return generator.gen(*this);
 }
@@ -137,10 +129,6 @@ llvm::Value *PrintStatement::gen(Generator &generator) {
   return generator.gen(*this);
 }
 llvm::Value *VariableDefinitionStatement::gen(Generator &generator) {
-  return generator.gen(*this);
-}
-llvm::Value *
-VariableDefinitionWithAssignmentStatement::gen(Generator &generator) {
   return generator.gen(*this);
 }
 llvm::Value *VariableAssignmentStatement::gen(Generator &generator) {

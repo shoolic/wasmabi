@@ -20,11 +20,6 @@ void PrintVisitor::visit(Program &node) {
   std::cout << std::endl;
 }
 
-void PrintVisitor::visit(Identifier &node) {
-  printIndent();
-  std::cout << "Identifier " << node.name << std::endl;
-}
-
 void PrintVisitor::visit(Literal &node) {
   printIndent();
   std::cout << "Literal " << node.value << std::endl;
@@ -90,15 +85,11 @@ void PrintVisitor::visit(FunctionDefinitionParameter &node) {
 
   nest += 1;
 
-  visit(*node.identifier);
+  printIndent();
+  std::cout << "Identifier " << node.identifier << std::endl;
   visit(*node.type);
 
   nest -= 1;
-}
-
-void PrintVisitor::visit(NullExpression &node) {
-  printIndent();
-  std::cout << "null";
 }
 
 void PrintVisitor::visit(FunctionCallExpression &node) {
@@ -121,7 +112,8 @@ void PrintVisitor::visit(FunctionCallExpression &node) {
 }
 
 void PrintVisitor::visit(IdentifierAsExpression &node) {
-  node.identifier->accept(*this);
+  printIndent();
+  std::cout << "IdentifierAsExpression " << node.identifier << std::endl;
 }
 // void PrintVisitor::visit(ValueExpression &node) {}
 void PrintVisitor::visit(UnaryExpression &node) {
@@ -265,15 +257,10 @@ void PrintVisitor::visit(VariableDefinitionStatement &node) {
   printIndent();
   std::cout << "VariableDefinitionStatement" << std::endl;
   nest += 1;
-  node.type->accept(*this);
-  nest -= 1;
-}
-void PrintVisitor::visit(VariableDefinitionWithAssignmentStatement &node) {
   printIndent();
-  std::cout << "VariableDefinitionWithAssignmentStatement" << std::endl;
-  nest += 1;
-  node.identifier->accept(*this);
+  std::cout << "Identifier " << node.identifier << std::endl;
   node.type->accept(*this);
+  printIndent();
 
   std::cout << "Value" << std::endl;
   nest += 1;
@@ -287,8 +274,8 @@ void PrintVisitor::visit(VariableAssignmentStatement &node) {
   std::cout << "VariableAssignmentStatement" << std::endl;
 
   nest += 1;
-
-  node.identifier->accept(*this);
+  printIndent();
+  std::cout << "Identifier " << node.identifier << std::endl;
   nest += 1;
 
   node.value->accept(*this);

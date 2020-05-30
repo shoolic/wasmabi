@@ -52,7 +52,7 @@ llvm::Function *Generator::gen(FunctionDefinition &node) {
   unsigned idx = 0;
 
   for (auto &arg : function->args()) {
-    arg.setName(node.parameters[idx++]->identifier->name);
+    arg.setName(node.parameters[idx++]->identifier);
   }
 
   return function;
@@ -146,9 +146,6 @@ llvm::Value *Generator::gen(Block &node) {
 llvm::Value *Generator::gen(FunctionDefinitionParameter &node) {
   return nullptr;
 }
-llvm::Value *Generator::gen(NullExpression &node) {
-  return builder.CreateRetVoid();
-}
 
 llvm::Value *Generator::gen(FunctionCallExpression &node) {
   std::vector<llvm::Value *> params;
@@ -157,7 +154,7 @@ llvm::Value *Generator::gen(FunctionCallExpression &node) {
     params.push_back(param->gen(*this));
   }
 
-  auto function = module->getFunction(node.identifier->name);
+  auto function = module->getFunction(node.identifier);
 
   return builder.CreateCall(function, params);
 }
@@ -165,12 +162,12 @@ llvm::Value *Generator::gen(FunctionCallExpression &node) {
 llvm::Value *Generator::gen(IdentifierAsExpression &node) {
   // check if exists!!
 
-  auto it = values.find(node.identifier->name);
+  auto it = values.find(node.identifier);
   if (it == values.end()) {
     std::runtime_error("no variable with given name");
   }
 
-  return builder.CreateLoad(it->second, node.identifier->name.c_str());
+  return builder.CreateLoad(it->second, node.identifier.c_str());
 }
 
 // llvm::Value* Generator::gen(ValueExpression &node) { return nullptr; }
@@ -491,31 +488,9 @@ llvm::Value *Generator::gen(PrintStatement &node) {
 }
 
 llvm::Value *Generator::gen(VariableDefinitionStatement &node) {
-  llvm::Constant *rValue;
-
-  switch (node.type->type) {
-  case VariableType::Type::Float:
-    rValue = llvm::ConstantFP::get(context, llvm::APFloat(0.0));
-  case VariableType::Type::Int:
-    rValue = llvm::ConstantInt::get(context, llvm::APInt(32, 0));
-  case VariableType::Type::String:
-    rValue = getStringLiteral("");
-  }
-
-  llvm::AllocaInst *allocVar =
-      builder.CreateAlloca(gen(*node.type), 0, node.identifier->name);
-
-  llvm::Value *fullValue = builder.CreateStore(rValue, allocVar);
-
-  values[node.identifier->name] = allocVar;
-
-  return fullValue;
-}
-
-llvm::Value *Generator::gen(VariableDefinitionWithAssignmentStatement &node) {
   llvm::Value *rValue = node.value->gen(*this);
   llvm::AllocaInst *allocVar =
-      builder.CreateAlloca(gen(*node.type), 0, node.identifier->name);
+      builder.CreateAlloca(gen(*node.type), 0, node.identifier);
 
   const auto *rValuePtr = rValue->getType()->getPointerTo();
 
@@ -525,7 +500,7 @@ llvm::Value *Generator::gen(VariableDefinitionWithAssignmentStatement &node) {
 
   llvm::StoreInst *fullValue = builder.CreateStore(rValue, allocVar);
 
-  values[node.identifier->name] = allocVar;
+  values[node.identifier] = allocVar;
 
   return fullValue;
 }
@@ -533,7 +508,7 @@ llvm::Value *Generator::gen(VariableDefinitionWithAssignmentStatement &node) {
 llvm::Value *Generator::gen(VariableAssignmentStatement &node) {
   llvm::Value *rValue = node.value->gen(*this);
 
-  llvm::Value *allocVar = values[node.identifier->name];
+  llvm::Value *allocVar = values[node.identifier];
 
   if (allocVar->getType() != rValue->getType()) {
     throw std::runtime_error("cannot assign, types differ");

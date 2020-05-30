@@ -11,14 +11,12 @@ public:
   std::string getString(ValueExpression &valueExpression);
   // void visit(Node &node);
   void visit(Program &node);
-  void visit(Identifier &node);
   void visit(Literal &node);
   void visit(VariableType &node);
   void visit(FunctionType &node);
   void visit(Block &node);
   void visit(FunctionDefinition &node);
   void visit(FunctionDefinitionParameter &node);
-  void visit(NullExpression &node);
   void visit(FunctionCallExpression &node);
   void visit(IdentifierAsExpression &node);
   // void visit(ValueExpression &node);
@@ -32,7 +30,6 @@ public:
   void visit(ReturnStatement &node);
   void visit(PrintStatement &node);
   void visit(VariableDefinitionStatement &node);
-  void visit(VariableDefinitionWithAssignmentStatement &node);
   void visit(VariableAssignmentStatement &node);
   void visit(FunctionCallStatement &node);
 

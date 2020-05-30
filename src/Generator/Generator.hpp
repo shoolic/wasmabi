@@ -23,7 +23,6 @@ struct FunctionType;
 struct Block;
 struct FunctionDefinition;
 struct FunctionDefinitionParameter;
-struct NullExpression;
 struct FunctionCallExpression;
 struct IdentifierAsExpression;
 struct ValueExpression;
@@ -37,7 +36,6 @@ struct IfStatement;
 struct ReturnStatement;
 struct PrintStatement;
 struct VariableDefinitionStatement;
-struct VariableDefinitionWithAssignmentStatement;
 struct VariableAssignmentStatement;
 struct FunctionCallStatement;
 
@@ -53,7 +51,6 @@ public:
   llvm::Type *gen(VariableType &node);
   llvm::Type *gen(FunctionType &node);
   llvm::Value *gen(Block &node);
-  llvm::Value *gen(NullExpression &node);
   llvm::Value *gen(FunctionCallExpression &node);
   llvm::Value *gen(IdentifierAsExpression &node);
   // llvm::Value* gen(ValueExpression &node);
@@ -67,7 +64,6 @@ public:
   llvm::Value *gen(ReturnStatement &node); // v
   llvm::Value *gen(PrintStatement &node);  // v
   llvm::Value *gen(VariableDefinitionStatement &node);
-  llvm::Value *gen(VariableDefinitionWithAssignmentStatement &node);
   llvm::Value *gen(VariableAssignmentStatement &node);
   llvm::Value *gen(FunctionCallStatement &node); // v
 

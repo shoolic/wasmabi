@@ -192,9 +192,11 @@ Parser::createFunctionDefinitonParameter() {
   return parameter;
 }
 
-std::unique_ptr<Identifier> Parser::createIdentifier(Token t) {
-  expect(t, Token::Type::Identifier);
-  return std::make_unique<Identifier>(std::get<std::string>(t.getValue()));
+std::string Parser::createIdentifier(Token t) {
+  // expect(t, Token::Type::Identifier);
+  // return std::make_unique<Identifier>(std::get<std::string>(t.getValue()));
+
+  return std::get<std::string>(t.getValue());
 }
 
 std::unique_ptr<VariableType> Parser::createVariableType(Token t) {
@@ -285,12 +287,12 @@ Parser::createVariableDefinitionStatement() {
   skipTypeOperator();
   Token type = next();
   Token determiner = next();
+  auto variableDefinitionStatement =
+      std::make_unique<VariableDefinitionStatement>();
+  variableDefinitionStatement->identifier = createIdentifier(identifier);
 
+  variableDefinitionStatement->type = createVariableType(type);
   if (determiner == Token::Type::Semicolon) {
-    auto variableDefinitionStatement =
-        std::make_unique<VariableDefinitionWithAssignmentStatement>();
-    variableDefinitionStatement->identifier = createIdentifier(identifier);
-    variableDefinitionStatement->type = createVariableType(type);
 
     switch (variableDefinitionStatement->type->type) {
     case VariableType::Type::Float:
@@ -310,19 +312,17 @@ Parser::createVariableDefinitionStatement() {
     // expect(next(), Token::Type::Semicolon);
     return variableDefinitionStatement;
   } else if (determiner == Token::Type::AssignmentOperator) {
-    auto variableDefinitionWithAssignmentStatement =
-        std::make_unique<VariableDefinitionWithAssignmentStatement>();
-    variableDefinitionWithAssignmentStatement->identifier =
-        createIdentifier(identifier);
-    variableDefinitionWithAssignmentStatement->type = createVariableType(type);
-    variableDefinitionWithAssignmentStatement->value = createValueExpression();
-    // TOD) check for null value
+    variableDefinitionStatement->value = createValueExpression();
     expect(next(), Token::Type::Semicolon);
 
-    return variableDefinitionWithAssignmentStatement;
-  }
+    if (variableDefinitionStatement->value) {
+      std::runtime_error("no value in assignment");
+    }
 
-  throw new VariableDefinitionStatementError(determiner);
+  } else {
+    throw new VariableDefinitionStatementError(determiner);
+  }
+  return variableDefinitionStatement;
 }
 
 std::unique_ptr<VariableAssignmentStatement>
@@ -408,7 +408,6 @@ std::unique_ptr<ValueExpression> Parser::createValueExpression(int rbp) {
 
   if (isExpressionTerminator(peek())) {
     return nullptr;
-    // return std::make_unique<NullExpression>();
     // TODO error?
   }
 

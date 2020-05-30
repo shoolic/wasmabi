@@ -12,14 +12,13 @@
 namespace wasmabi {
 
 struct Program;
-struct Identifier;
+// struct Identifier;
 struct Literal;
 struct VariableType;
 struct FunctionType;
 struct Block;
 struct FunctionDefinition;
 struct FunctionDefinitionParameter;
-struct NullExpression;
 struct FunctionCallExpression;
 struct IdentifierAsExpression;
 struct ValueExpression;
@@ -33,7 +32,6 @@ struct IfStatement;
 struct ReturnStatement;
 struct PrintStatement;
 struct VariableDefinitionStatement;
-struct VariableDefinitionWithAssignmentStatement;
 struct VariableAssignmentStatement;
 struct FunctionCallStatement;
 
@@ -71,7 +69,7 @@ struct FunctionDefinition : public Node {
 };
 
 struct FunctionDefinitionParameter : public Node {
-  std::unique_ptr<Identifier> identifier;
+  std::string identifier;
   std::unique_ptr<VariableType> type;
 
   ACCEPT_VISITOR
@@ -119,15 +117,8 @@ struct PrintStatement : public Statement {
 };
 
 struct VariableDefinitionStatement : public Statement {
-  std::unique_ptr<Identifier> identifier;
+  std::string identifier;
   std::unique_ptr<VariableType> type;
-
-  ACCEPT_VISITOR
-  ACCEPT_GENERATOR
-};
-
-struct VariableDefinitionWithAssignmentStatement
-    : public VariableDefinitionStatement {
   std::unique_ptr<ValueExpression> value;
 
   ACCEPT_VISITOR
@@ -135,7 +126,7 @@ struct VariableDefinitionWithAssignmentStatement
 };
 
 struct VariableAssignmentStatement : public Statement {
-  std::unique_ptr<Identifier> identifier;
+  std::string identifier;
   std::unique_ptr<ValueExpression> value;
 
   ACCEPT_VISITOR
@@ -144,14 +135,6 @@ struct VariableAssignmentStatement : public Statement {
 
 struct FunctionCallStatement : public Statement {
   std::unique_ptr<FunctionCallExpression> functionCallExpression;
-
-  ACCEPT_VISITOR
-  ACCEPT_GENERATOR
-};
-
-struct Identifier : public Node {
-  std::string name;
-  Identifier(std::string name_) : name(name_){};
 
   ACCEPT_VISITOR
   ACCEPT_GENERATOR
@@ -185,14 +168,14 @@ struct ValueExpression : public Node {
 };
 
 struct IdentifierAsExpression : public ValueExpression {
-  std::unique_ptr<Identifier> identifier;
+  std::string identifier;
 
   ACCEPT_VISITOR
   ACCEPT_GENERATOR
 };
 
 struct FunctionCallExpression : public ValueExpression {
-  std::unique_ptr<Identifier> identifier;
+  std::string identifier;
   std::vector<std::unique_ptr<ValueExpression>> parameters;
 
   ACCEPT_VISITOR
@@ -266,12 +249,6 @@ struct Literal : public ValueExpression {
   std::variant<std::string, int, float> value;
   Literal(Type type_, std::variant<std::string, int, float> value_);
   Literal(Type type_);
-
-  ACCEPT_VISITOR
-  ACCEPT_GENERATOR
-};
-
-struct NullExpression : public ValueExpression {
 
   ACCEPT_VISITOR
   ACCEPT_GENERATOR

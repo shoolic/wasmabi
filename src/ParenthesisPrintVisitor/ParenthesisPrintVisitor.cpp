@@ -17,12 +17,10 @@ void ParenthesisPrintVisitor::visit(Literal &node) {
   output += "(" + s.str() + ")";
 }
 
-void ParenthesisPrintVisitor::visit(NullExpression &node) {
-  output += "(null)";
-}
+
 
 void ParenthesisPrintVisitor::visit(FunctionCallExpression &node) {
-  output += "(" + node.identifier->name + "(";
+  output += "(" + node.identifier + "(";
   std::size_t i = 0;
   for (auto &param : node.parameters) {
     param->accept(*this);
@@ -36,7 +34,7 @@ void ParenthesisPrintVisitor::visit(FunctionCallExpression &node) {
 }
 
 void ParenthesisPrintVisitor::visit(IdentifierAsExpression &node) {
-  output += "(" + node.identifier->name + ")";
+  output += "(" + node.identifier + ")";
 }
 
 void ParenthesisPrintVisitor::visit(UnaryExpression &node) {
@@ -90,7 +88,6 @@ std::map<BinaryExpression::Type, std::string>
     }};
 
 void ParenthesisPrintVisitor::visit(Program &node) {}
-void ParenthesisPrintVisitor::visit(Identifier &node) {}
 void ParenthesisPrintVisitor::visit(VariableType &node) {}
 void ParenthesisPrintVisitor::visit(FunctionType &node) {}
 void ParenthesisPrintVisitor::visit(Block &node) {}
@@ -101,8 +98,7 @@ void ParenthesisPrintVisitor::visit(IfStatement &node) {}
 void ParenthesisPrintVisitor::visit(ReturnStatement &node) {}
 void ParenthesisPrintVisitor::visit(PrintStatement &node) {}
 void ParenthesisPrintVisitor::visit(VariableDefinitionStatement &node) {}
-void ParenthesisPrintVisitor::visit(
-    VariableDefinitionWithAssignmentStatement &node) {}
+
 void ParenthesisPrintVisitor::visit(VariableAssignmentStatement &node) {}
 void ParenthesisPrintVisitor::visit(FunctionCallStatement &node) {}
 void ParenthesisPrintVisitor::visit(SelectExpressionCase &node) {}
