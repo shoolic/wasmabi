@@ -87,6 +87,8 @@ private:
 
   llvm::Value *getVar(std::string name);
   void insertVar(std::string name, llvm::Value *value);
+
+  llvm::Value *makeConditionFromValue(llvm::Value* value);
 };
 
 } // namespace wasmabi

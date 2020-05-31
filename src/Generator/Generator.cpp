@@ -4,7 +4,7 @@
 namespace wasmabi {
 
 Generator::Generator(std::ostream &output_)
-    : output(output_), /* builder(context),*/
+    : output(output_),
       module(std::make_unique<llvm::Module>("wasmabi", context)) {}
 
 llvm::Value *Generator::gen(Program &node) {
@@ -34,8 +34,12 @@ llvm::Value *Generator::gen(Program &node) {
     auto functionBlockValue = funDef->block->gen(*this);
     llvm::verifyFunction(*function);
   }
+  std::error_code EC;
+  llvm::raw_fd_ostream dest("test.ll", EC, llvm::sys::fs::OF_None);
 
-  module->print(llvm::errs(), nullptr);
+  module->print(dest, nullptr);
+  module->setTargetTriple("wasm32-unknown-unknown");
+
   return nullptr;
 }
 
@@ -92,7 +96,7 @@ llvm::Constant *Generator::getStringLiteral(std::string str) {
       llvm::ConstantDataArray::getString(context, str.c_str(), true);
 
   auto stringLiteral = new llvm::GlobalVariable(
-      *module, stringType, true, llvm::GlobalVariable::ExternalLinkage,
+      *module, stringType, true, llvm::GlobalVariable::PrivateLinkage,
       stringInitializer, str);
 
   auto stringConst = llvm::ConstantExpr::getBitCast(
@@ -136,14 +140,13 @@ llvm::Value *Generator::gen(Block &node) {
     if (instr.index() == 0) {
       values.push_back(std::map<std::string, llvm::Value *>{});
       std::get<std::unique_ptr<Block>>(instr)->gen(*this);
+      values.pop_back();
     }
 
     if (instr.index() == 1) {
       std::get<std::unique_ptr<Statement>>(instr)->gen(*this);
     }
   }
-
-  values.pop_back();
 
   return builder.GetInsertBlock();
 }
@@ -340,36 +343,40 @@ llvm::Value *Generator::gen(SelectExpression &node) {
   std::vector<llvm::BasicBlock *> selectCases;
   std::vector<llvm::Value *> selectCaseValues;
   std::vector<llvm::BasicBlock *> selectCaseBlocks;
-
-  auto currentBlock = builder.GetInsertBlock()->getParent();
+  auto function = builder.GetInsertBlock()->getParent();
+  auto currentBlock = builder.GetInsertBlock();
 
   for (auto &selectCase : node.cases) {
-    auto selectcase =
-        llvm::BasicBlock::Create(context, "selectcase", currentBlock);
-    auto selectcaseblock =
-        llvm::BasicBlock::Create(context, "selectcaseblock", currentBlock);
+    auto selectcase = llvm::BasicBlock::Create(context, "selectcase");
+    auto selectcaseblock = llvm::BasicBlock::Create(context, "selectcaseblock");
 
     selectCases.push_back(selectcase);
     selectCaseBlocks.push_back(selectcaseblock);
   }
 
   auto otherwiseblock =
-      llvm::BasicBlock::Create(context, "selectotherwiseblock", currentBlock);
+      llvm::BasicBlock::Create(context, "selectotherwiseblock");
   selectCases.push_back(otherwiseblock);
   selectCaseBlocks.push_back(otherwiseblock);
 
-  auto selectcont =
-      llvm::BasicBlock::Create(context, "selectcont", currentBlock);
+  auto selectcont = llvm::BasicBlock::Create(context, "selectcont");
+
+  builder.CreateBr(selectCases[0]);
 
   std::size_t idx = 0;
   for (auto &selectCase : node.cases) {
 
     builder.SetInsertPoint(selectCases[idx]);
-    llvm::Value *conditionValue = selectCase->condition->gen(*this);
+    function->getBasicBlockList().push_back(selectCases[idx]);
+    llvm::Value *conditionValue =
+        makeConditionFromValue(selectCase->condition->gen(*this));
+
     builder.CreateCondBr(conditionValue, selectCaseBlocks[idx],
                          selectCases[idx + 1]);
 
     builder.SetInsertPoint(selectCaseBlocks[idx]);
+    function->getBasicBlockList().push_back(selectCaseBlocks[idx]);
+
     llvm::Value *selectCaseValue = selectCase->value->gen(*this);
     selectCaseValues.push_back(selectCaseValue);
     builder.CreateBr(selectcont);
@@ -378,10 +385,14 @@ llvm::Value *Generator::gen(SelectExpression &node) {
   }
 
   builder.SetInsertPoint(otherwiseblock);
+  function->getBasicBlockList().push_back(otherwiseblock);
+
   llvm::Value *otherwiseValue = node.otherwiseCaseValue->gen(*this);
+  builder.CreateBr(selectcont);
   selectCaseValues.push_back(otherwiseValue);
 
   builder.SetInsertPoint(selectcont);
+  function->getBasicBlockList().push_back(selectcont);
 
   auto PHINode = builder.CreatePHI(otherwiseValue->getType(),
                                    selectCases.size(), "selecttmp");
@@ -394,31 +405,42 @@ llvm::Value *Generator::gen(SelectExpression &node) {
 }
 
 llvm::Value *Generator::gen(LoopStatement &node) {
-  auto currentBlock = builder.GetInsertBlock()->getParent();
+  auto function = builder.GetInsertBlock()->getParent();
+  auto currentBlock = builder.GetInsertBlock();
 
-  llvm::BasicBlock *loopBlock =
-      llvm::BasicBlock::Create(context, "loopblock", currentBlock);
+  llvm::BasicBlock *loop = llvm::BasicBlock::Create(context, "loop");
+
+  llvm::BasicBlock *loopBlock = llvm::BasicBlock::Create(context, "loopblock");
 
   llvm::BasicBlock *loopContinueBlock =
       llvm::BasicBlock::Create(context, "loopcont");
 
-  builder.SetInsertPoint(loopBlock);
-  auto conditionValue = node.condition->gen(*this);
+  builder.CreateBr(loop);
+  function->getBasicBlockList().push_back(loop);
+
+  builder.SetInsertPoint(loop);
+  auto conditionValue = makeConditionFromValue(node.condition->gen(*this));
   builder.CreateCondBr(conditionValue, loopBlock, loopContinueBlock);
-  auto ifBlockValue = node.block->gen(*this);
-  builder.CreateBr(loopBlock);
+
+  builder.SetInsertPoint(loopBlock);
+  function->getBasicBlockList().push_back(loopBlock);
+
+  auto loopBlockVal = node.block->gen(*this);
+  builder.CreateBr(loop);
 
   builder.SetInsertPoint(loopContinueBlock);
-  currentBlock->getBasicBlockList().push_back(loopContinueBlock);
+  function->getBasicBlockList().push_back(loopContinueBlock);
 
   return loopBlock;
 }
 
 llvm::Value *Generator::gen(IfStatement &node) {
-  auto conditionValue = node.condition->gen(*this);
-  auto currentBlock = builder.GetInsertBlock()->getParent();
+  auto function = builder.GetInsertBlock()->getParent();
+  auto currentBlock = builder.GetInsertBlock();
+
+  auto conditionValue = makeConditionFromValue(node.condition->gen(*this));
   llvm::BasicBlock *ifBlock =
-      llvm::BasicBlock::Create(context, "ifblock", currentBlock);
+      llvm::BasicBlock::Create(context, "ifblock", function);
 
   llvm::BasicBlock *ifContinueBlock =
       llvm::BasicBlock::Create(context, "ifcont");
@@ -429,7 +451,7 @@ llvm::Value *Generator::gen(IfStatement &node) {
   auto ifBlockValue = node.block->gen(*this);
 
   builder.SetInsertPoint(ifContinueBlock);
-  currentBlock->getBasicBlockList().push_back(ifContinueBlock);
+  function->getBasicBlockList().push_back(ifContinueBlock);
 
   return nullptr;
 }
@@ -497,7 +519,7 @@ llvm::Value *Generator::gen(VariableAssignmentStatement &node) {
 
   llvm::Value *allocVar = getVar(node.identifier);
 
-  if (allocVar->getType() != rValue->getType()) {
+  if (allocVar->getType() != rValue->getType()->getPointerTo()) {
     throw std::runtime_error("cannot assign, types differ");
   }
 
@@ -552,6 +574,19 @@ void Generator::insertVar(std::string name, llvm::Value *value) {
   }
 
   map[name] = value;
+}
+
+llvm::Value *Generator::makeConditionFromValue(llvm::Value *value) {
+
+  if (isString(value)) {
+    throw std::runtime_error("string cannot be used in condition");
+  } else if (isInt(value)) {
+    return builder.CreateICmpNE(
+        value, llvm::ConstantInt::get(builder.getInt32Ty(), 0, true));
+  } else {
+    return builder.CreateFCmpUNE(
+        value, llvm::ConstantFP::get(builder.getFloatTy(), 0));
+  }
 }
 
 } // namespace wasmabi
