@@ -1,11 +1,14 @@
 #include "Generator.hpp"
+#include "../Errors/ErrorHandler.hpp"
 #include "../Nodes/Node.hpp"
+#include "llvm/Support/raw_os_ostream.h"
 
 namespace wasmabi {
 
-Generator::Generator(std::ostream &output_)
-    : output(output_),
-      module(std::make_unique<llvm::Module>("wasmabi", context)) {}
+Generator::Generator(std::ostream &output_, std::string moduleName_,
+                     std::string sourceFilePath_)
+    : output(output_), moduleName(moduleName_), sourceFilePath(sourceFilePath_),
+      module(std::make_unique<llvm::Module>(moduleName, context)) {}
 
 llvm::Value *Generator::gen(Program &node) {
 
@@ -33,23 +36,42 @@ llvm::Value *Generator::gen(Program &node) {
 
     auto functionBlockValue = funDef->block->gen(*this);
     llvm::verifyFunction(*function);
-  }
-  std::error_code EC;
-  llvm::raw_fd_ostream dest("test.ll", EC, llvm::sys::fs::OF_None);
 
-  module->print(dest, nullptr);
-  module->setTargetTriple("wasm32-unknown-unknown");
+    values.pop_back();
+  }
+
+  module->setSourceFileName(sourceFilePath);
+  llvm::raw_os_ostream ostream(output);
+  module->print(ostream, nullptr);
 
   return nullptr;
 }
 
 llvm::FunctionCallee Generator::printFun() {
-
   return module->getOrInsertFunction(
       "printf",
       llvm::FunctionType::get(
           llvm::IntegerType::getInt32Ty(context),
           llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0), true));
+}
+
+llvm::FunctionCallee Generator::powfFun() {
+  return module->getOrInsertFunction(
+      "powf", llvm::FunctionType::get(
+                  builder.getFloatTy(),
+                  {builder.getFloatTy(), builder.getFloatTy()}, false));
+}
+
+llvm::Value *Generator::powi(llvm::Value *base, llvm::Value *exponent) {
+  base = builder.CreateCast(llvm::CastInst::SIToFP, base, builder.getFloatTy());
+  exponent = builder.CreateCast(llvm::CastInst::SIToFP, exponent,
+                                builder.getFloatTy());
+
+  llvm::Value *powValue = builder.CreateCall(powfFun(), {base, exponent});
+
+  powValue = builder.CreateCast(llvm::CastInst::FPToSI, powValue,
+                                builder.getInt32Ty());
+  return powValue;
 }
 
 llvm::Function *Generator::gen(FunctionDefinition &node) {
@@ -160,6 +182,10 @@ llvm::Value *Generator::gen(FunctionCallExpression &node) {
 
   auto function = module->getFunction(node.identifier);
 
+  if (!function) {
+    throw std::runtime_error("Function with given identifier not found");
+  }
+
   return builder.CreateCall(function, params);
 }
 
@@ -235,9 +261,7 @@ llvm::Value *Generator::genFloatBinExpr(BinaryExpression &node,
   case BinaryExpression::Type::Div:
     return builder.CreateFDiv(leftValue, rightValue);
   case BinaryExpression::Type::Pow:
-    throw std::runtime_error("not implemented");
-    return nullptr;
-
+    return builder.CreateCall(powfFun(), {leftValue, rightValue});
   case BinaryExpression::Type::And:
     llvm::CastInst::Create(llvm::CastInst::FPToSI, leftValue,
                            builder.getInt1Ty());
@@ -300,8 +324,7 @@ llvm::Value *Generator::genIntBinExpr(BinaryExpression &node,
   case BinaryExpression::Type::Div:
     return builder.CreateSDiv(leftValue, rightValue);
   case BinaryExpression::Type::Pow:
-    throw std::runtime_error("not implemented");
-    return nullptr;
+    return powi(leftValue, rightValue);
   case BinaryExpression::Type::And:
     throw std::runtime_error("");
 
@@ -479,17 +502,17 @@ llvm::Value *Generator::gen(PrintStatement &node) {
   auto value = node.value->gen(*this);
 
   if (value->getType() == llvm::Type::getInt8PtrTy(context)) {
-    std::vector<llvm::Value *> args{getStringLiteral("%s"), value};
+    std::vector<llvm::Value *> args{getStringLiteral("%s\n"), value};
     return builder.CreateCall(printFun(), args);
   }
 
   if (value->getType() == llvm::Type::getInt32Ty(context)) {
-    std::vector<llvm::Value *> args{getStringLiteral("%d"), value};
+    std::vector<llvm::Value *> args{getStringLiteral("%d\n"), value};
     return builder.CreateCall(printFun(), args);
   }
 
   if (value->getType() == llvm::Type::getFloatTy(context)) {
-    std::vector<llvm::Value *> args{getStringLiteral("%f"), value};
+    std::vector<llvm::Value *> args{getStringLiteral("%f\n"), value};
     return builder.CreateCall(printFun(), args);
   }
 

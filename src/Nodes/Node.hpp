@@ -12,7 +12,6 @@
 namespace wasmabi {
 
 struct Program;
-// struct Identifier;
 struct Literal;
 struct VariableType;
 struct FunctionType;

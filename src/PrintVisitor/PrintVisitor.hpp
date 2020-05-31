@@ -8,7 +8,7 @@ namespace wasmabi {
 
 class PrintVisitor : public Visitor {
 public:
-  PrintVisitor();
+  PrintVisitor(std::ostream &output_);
   void visit(Program &node);
   void visit(Literal &node);
   void visit(VariableType &node);
@@ -31,6 +31,7 @@ public:
   void visit(FunctionCallStatement &node);
 
 private:
+  std::ostream &output;
   void printIndent() const;
   int nest;
 };

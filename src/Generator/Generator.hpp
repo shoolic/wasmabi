@@ -41,7 +41,8 @@ struct FunctionCallStatement;
 
 class Generator {
 public:
-  Generator(std::ostream &output_);
+  Generator(std::ostream &output_, std::string moduleName_,
+            std::string sourceFilePath_);
   llvm::Value *gen(Program &node);
   llvm::Function *gen(FunctionDefinition &node);
   llvm::Value *gen(Literal &node);
@@ -63,6 +64,8 @@ public:
 
 private:
   std::ostream &output;
+  std::string moduleName;
+  std::string sourceFilePath;
   llvm::LLVMContext context;
   llvm::IRBuilder<> builder{context};
   std::unique_ptr<llvm::Module> module;
@@ -78,6 +81,8 @@ private:
   llvm::Constant *getStringLiteral(std::string str);
 
   llvm::FunctionCallee printFun();
+  llvm::FunctionCallee powfFun();
+  llvm::Value *powi(llvm::Value *base, llvm::Value *exponent);
 
   bool isString(llvm::Value *value);
   bool isInt(llvm::Value *value);
@@ -88,7 +93,7 @@ private:
   llvm::Value *getVar(std::string name);
   void insertVar(std::string name, llvm::Value *value);
 
-  llvm::Value *makeConditionFromValue(llvm::Value* value);
+  llvm::Value *makeConditionFromValue(llvm::Value *value);
 };
 
 } // namespace wasmabi

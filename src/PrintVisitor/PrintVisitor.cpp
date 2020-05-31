@@ -3,13 +3,11 @@
 
 namespace wasmabi {
 
-PrintVisitor::PrintVisitor() : nest(0) {}
-
-// void PrintVisitor::visit(Node &node) {}
+PrintVisitor::PrintVisitor(std::ostream &output_) : output(output_), nest(0) {}
 
 void PrintVisitor::visit(Program &node) {
   printIndent();
-  std::cout << "Program" << std::endl;
+  output << "Program" << std::endl;
 
   nest += 1;
   for (auto &x : node.functionDefintions) {
@@ -17,33 +15,33 @@ void PrintVisitor::visit(Program &node) {
   }
   nest += -1;
 
-  std::cout << std::endl;
+  output << std::endl;
 }
 
 void PrintVisitor::visit(Literal &node) {
   printIndent();
-  std::cout << "Literal " << node.value << std::endl;
+  output << "Literal " << node.value << std::endl;
 }
 
 void PrintVisitor::visit(VariableType &node) {
   printIndent();
-  std::cout << "VariableType "
-            << static_cast<std::underlying_type<VariableType::Type>::type>(
-                   node.type)
-            << std::endl;
+  output << "VariableType "
+         << static_cast<std::underlying_type<VariableType::Type>::type>(
+                node.type)
+         << std::endl;
 }
 
 void PrintVisitor::visit(FunctionType &node) {
   printIndent();
-  std::cout << "FunctionType "
-            << static_cast<std::underlying_type<FunctionType::Type>::type>(
-                   node.type)
-            << std::endl;
+  output << "FunctionType "
+         << static_cast<std::underlying_type<FunctionType::Type>::type>(
+                node.type)
+         << std::endl;
 }
 
 void PrintVisitor::visit(Block &node) {
   printIndent();
-  std::cout << "Block" << std::endl;
+  output << "Block" << std::endl;
   nest += 1;
   for (auto &x : node.instructions) {
     if (x.index() == 0) {
@@ -57,16 +55,16 @@ void PrintVisitor::visit(Block &node) {
 
 void PrintVisitor::visit(FunctionDefinition &node) {
   printIndent();
-  std::cout << "FunctionDefinition" << std::endl;
+  output << "FunctionDefinition" << std::endl;
 
   nest += 1;
   printIndent();
-  std::cout << "Identifier " << node.identifier << std::endl;
+  output << "Identifier " << node.identifier << std::endl;
 
   node.returnedType->accept(*this);
 
   printIndent();
-  std::cout << "FunctionDefinitionParameters" << std::endl;
+  output << "FunctionDefinitionParameters" << std::endl;
 
   nest += 1;
   for (auto &x : node.parameters) {
@@ -81,12 +79,12 @@ void PrintVisitor::visit(FunctionDefinition &node) {
 
 void PrintVisitor::visit(FunctionDefinitionParameter &node) {
   printIndent();
-  std::cout << "FunctionDefinitionParameter" << std::endl;
+  output << "FunctionDefinitionParameter" << std::endl;
 
   nest += 1;
 
   printIndent();
-  std::cout << "Identifier " << node.identifier << std::endl;
+  output << "Identifier " << node.identifier << std::endl;
   visit(*node.type);
 
   nest -= 1;
@@ -94,15 +92,15 @@ void PrintVisitor::visit(FunctionDefinitionParameter &node) {
 
 void PrintVisitor::visit(FunctionCallExpression &node) {
   printIndent();
-  std::cout << "FunctionCallExpression" << std::endl;
+  output << "FunctionCallExpression" << std::endl;
   nest += 1;
   printIndent();
-  std::cout << "Parameters" << std::endl;
+  output << "Parameters" << std::endl;
   nest += 1;
 
   for (auto &x : node.parameters) {
     printIndent();
-    std::cout << "Parameter" << std::endl;
+    output << "Parameter" << std::endl;
     nest += 1;
     x->accept(*this);
     nest -= 1;
@@ -113,19 +111,19 @@ void PrintVisitor::visit(FunctionCallExpression &node) {
 
 void PrintVisitor::visit(IdentifierAsExpression &node) {
   printIndent();
-  std::cout << "IdentifierAsExpression " << node.identifier << std::endl;
+  output << "IdentifierAsExpression " << node.identifier << std::endl;
 }
-// void PrintVisitor::visit(ValueExpression &node) {}
+
 void PrintVisitor::visit(UnaryExpression &node) {
   printIndent();
-  std::cout << "UnaryExpression "
-            << static_cast<std::underlying_type<UnaryExpression::Type>::type>(
-                   node.type)
-            << std::endl;
+  output << "UnaryExpression "
+         << static_cast<std::underlying_type<UnaryExpression::Type>::type>(
+                node.type)
+         << std::endl;
 
   nest += 1;
   printIndent();
-  std::cout << "Operand" << std::endl;
+  output << "Operand" << std::endl;
 
   nest += 1;
   node.operand->accept(*this);
@@ -134,22 +132,22 @@ void PrintVisitor::visit(UnaryExpression &node) {
 
 void PrintVisitor::visit(BinaryExpression &node) {
   printIndent();
-  std::cout << "BinaryExpression "
-            << static_cast<std::underlying_type<BinaryExpression::Type>::type>(
-                   node.type)
-            << std::endl;
+  output << "BinaryExpression "
+         << static_cast<std::underlying_type<BinaryExpression::Type>::type>(
+                node.type)
+         << std::endl;
 
   nest += 1;
   printIndent();
 
-  std::cout << "LeftOperand" << std::endl;
+  output << "LeftOperand" << std::endl;
 
   nest += 1;
   node.leftOperand->accept(*this);
   nest -= 1;
 
   printIndent();
-  std::cout << "RightOperand" << std::endl;
+  output << "RightOperand" << std::endl;
   nest += 1;
   node.rightOperand->accept(*this);
   nest -= 2;
@@ -157,11 +155,11 @@ void PrintVisitor::visit(BinaryExpression &node) {
 
 void PrintVisitor::visit(SelectExpression &node) {
   printIndent();
-  std::cout << "SelectExpression" << std::endl;
+  output << "SelectExpression" << std::endl;
 
   nest += 1;
   printIndent();
-  std::cout << "Cases" << std::endl;
+  output << "Cases" << std::endl;
 
   nest += 1;
   for (auto &x : node.cases) {
@@ -170,7 +168,7 @@ void PrintVisitor::visit(SelectExpression &node) {
   nest -= 1;
 
   printIndent();
-  std::cout << "OtherwiseCaseValue" << std::endl;
+  output << "OtherwiseCaseValue" << std::endl;
 
   nest += 1;
 
@@ -179,11 +177,11 @@ void PrintVisitor::visit(SelectExpression &node) {
 }
 void PrintVisitor::visit(SelectExpressionCase &node) {
   printIndent();
-  std::cout << "SelectExpressionCase" << std::endl;
+  output << "SelectExpressionCase" << std::endl;
 
   nest += 1;
   printIndent();
-  std::cout << "Value" << std::endl;
+  output << "Value" << std::endl;
 
   nest += 1;
   node.value->accept(*this);
@@ -191,21 +189,20 @@ void PrintVisitor::visit(SelectExpressionCase &node) {
 
   nest += 1;
   printIndent();
-  std::cout << "Condition" << std::endl;
+  output << "Condition" << std::endl;
 
   nest += 1;
   node.condition->accept(*this);
   nest -= 2;
 }
 
-// void PrintVisitor::visit(Statement &node) {}
 void PrintVisitor::visit(LoopStatement &node) {
   printIndent();
-  std::cout << "LoopStatement" << std::endl;
+  output << "LoopStatement" << std::endl;
 
   nest += 1;
   printIndent();
-  std::cout << "Condition" << std::endl;
+  output << "Condition" << std::endl;
   node.condition->accept(*this);
   node.block->accept(*this);
   nest -= 1;
@@ -213,11 +210,11 @@ void PrintVisitor::visit(LoopStatement &node) {
 
 void PrintVisitor::visit(IfStatement &node) {
   printIndent();
-  std::cout << "IfStatement" << std::endl;
+  output << "IfStatement" << std::endl;
 
   nest += 1;
   printIndent();
-  std::cout << "condition" << std::endl;
+  output << "condition" << std::endl;
 
   nest += 1;
   node.condition->accept(*this);
@@ -229,10 +226,10 @@ void PrintVisitor::visit(IfStatement &node) {
 
 void PrintVisitor::visit(ReturnStatement &node) {
   printIndent();
-  std::cout << "ReturnStatement" << std::endl;
+  output << "ReturnStatement" << std::endl;
   nest += 1;
   printIndent();
-  std::cout << "Value" << std::endl;
+  output << "Value" << std::endl;
   nest += 1;
   if (node.value) {
     node.value->accept(*this);
@@ -242,11 +239,11 @@ void PrintVisitor::visit(ReturnStatement &node) {
 
 void PrintVisitor::visit(PrintStatement &node) {
   printIndent();
-  std::cout << "PrintStatement" << std::endl;
+  output << "PrintStatement" << std::endl;
   nest += 1;
   printIndent();
 
-  std::cout << "Value" << std::endl;
+  output << "Value" << std::endl;
   nest += 1;
 
   node.value->accept(*this);
@@ -255,14 +252,14 @@ void PrintVisitor::visit(PrintStatement &node) {
 
 void PrintVisitor::visit(VariableDefinitionStatement &node) {
   printIndent();
-  std::cout << "VariableDefinitionStatement" << std::endl;
+  output << "VariableDefinitionStatement" << std::endl;
   nest += 1;
   printIndent();
-  std::cout << "Identifier " << node.identifier << std::endl;
+  output << "Identifier " << node.identifier << std::endl;
   node.type->accept(*this);
   printIndent();
 
-  std::cout << "Value" << std::endl;
+  output << "Value" << std::endl;
   nest += 1;
 
   node.value->accept(*this);
@@ -271,11 +268,11 @@ void PrintVisitor::visit(VariableDefinitionStatement &node) {
 
 void PrintVisitor::visit(VariableAssignmentStatement &node) {
   printIndent();
-  std::cout << "VariableAssignmentStatement" << std::endl;
+  output << "VariableAssignmentStatement" << std::endl;
 
   nest += 1;
   printIndent();
-  std::cout << "Identifier " << node.identifier << std::endl;
+  output << "Identifier " << node.identifier << std::endl;
   nest += 1;
 
   node.value->accept(*this);
@@ -283,7 +280,7 @@ void PrintVisitor::visit(VariableAssignmentStatement &node) {
 }
 void PrintVisitor::visit(FunctionCallStatement &node) {
   printIndent();
-  std::cout << "FunctionCallStatement" << std::endl;
+  output << "FunctionCallStatement" << std::endl;
   nest += 1;
   node.functionCallExpression->accept(*this);
   nest -= 1;
@@ -292,7 +289,7 @@ void PrintVisitor::visit(FunctionCallStatement &node) {
 void PrintVisitor::printIndent() const {
   int tmpNest = nest;
   while (tmpNest--) {
-    std::cout << "  ";
+    output << "  ";
   }
 }
 } // namespace wasmabi

@@ -5,6 +5,7 @@ set(TEST_NAME ${PROJECT_NAME}Tests)
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
+
 file(GLOB_RECURSE SOURCE_FILES "*.cpp")
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/tests)

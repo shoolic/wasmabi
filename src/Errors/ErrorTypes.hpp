@@ -91,6 +91,8 @@ public:
   const char *what();
 };
 
+class GeneratorError : public std::runtime_error {};
+
 } // namespace wasmabi
 
 #endif // WASMABI_ERROR_TYPES_HPP
