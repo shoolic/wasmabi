@@ -10,9 +10,9 @@ Wasmabi is a simple language and a compiler to LLVM IR created for Compilers cla
 ## Usage
 Type `./bin/Release/wasmabi --help` to see available commands.
 
-### Compilation
+## Compilation
 
-## Release
+### Release
 ```
 ./create_configs.sh;
 cd build/Release;
@@ -21,7 +21,7 @@ cd ../..;
 ./bin/Release/wasmabi tests/examples/preDocs1.wa;
 ```
 
-## Debug
+### Debug
 ```
 ./create_configs.sh;
 cd build/Debug;
@@ -30,12 +30,12 @@ cd ../..;
 ./bin/Debug/wasmabi tests/examples/preDocs1.wa;
 ```
 
-### Tests
-## Run tests
+## Tests
+### Run tests
 ```
 ./create_configs.sh;
 ./run_tests.sh;
 ```
 
-## Enable printing during tests
+### Enable printing during tests
 In `tests/helpers/NullOstream.hpp` there is defined `PREVENT_PRINTING` name. Undefine it to make the program output visible. 
