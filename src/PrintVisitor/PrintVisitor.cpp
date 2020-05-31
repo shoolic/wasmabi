@@ -1,5 +1,5 @@
 #include "PrintVisitor.hpp"
-#include "../helpers/VariantOstream.hpp"
+#include "../Helpers/VariantOstream.hpp"
 
 namespace wasmabi {
 

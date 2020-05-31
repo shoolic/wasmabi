@@ -1,5 +1,5 @@
 #include "ParenthesisPrintVisitor.hpp"
-#include "../helpers/VariantOstream.hpp"
+#include "../Helpers/VariantOstream.hpp"
 #include <sstream>
 namespace wasmabi {
 
@@ -16,8 +16,6 @@ void ParenthesisPrintVisitor::visit(Literal &node) {
   s << node.value;
   output += "(" + s.str() + ")";
 }
-
-
 
 void ParenthesisPrintVisitor::visit(FunctionCallExpression &node) {
   output += "(" + node.identifier + "(";

@@ -1,7 +1,7 @@
 #include "Lexer/Lexer.hpp"
 #include "SourceController/SourceController.hpp"
 #include "Token/Token.hpp"
-#include "helpers/NullOstream.hpp"
+#include "Helpers/NullOstream.hpp"
 #include <boost/test/unit_test.hpp>
 
 #include <fstream>

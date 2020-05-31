@@ -1,5 +1,5 @@
 #include "Node.hpp"
-#include "../helpers/VariantOstream.hpp"
+#include "../Helpers/VariantOstream.hpp"
 
 #include "../Generator/Generator.hpp"
 

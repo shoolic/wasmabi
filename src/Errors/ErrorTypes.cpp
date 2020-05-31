@@ -1,23 +1,31 @@
 #include "ErrorTypes.hpp"
-#include "../helpers/OstreamModifier.hpp"
+#include "../Helpers/OstreamModifier.hpp"
 #include <sstream>
 
 namespace wasmabi {
 
-std::map<Error::Lexical, std::string> Error::lexicalMap = {
-    {Error::Lexical::UnexpectedZero,
-     "Incorrect number format (unexpected zero at the beginning?)"},
-    {Error::Lexical::ExtraDot, "Incorrect number format (extra dot?)"},
-    {Error::Lexical::ExpectedDigit, "Incorrect number format (digit expected)"},
-    {Error::Lexical::InvalidToken, "Invalid token"},
-    {Error::Lexical::NoCommentEnd, "No comment end"},
-    {Error::Lexical::NoQuoteEnd, "No quote end"},
-};
+GeneralError::GeneralError(std::string str) : std::runtime_error(str) {}
 
-std::ostream &operator<<(std::ostream &os, const Error::Lexical &err) {
-  os << Error::lexicalMap[err];
-  return os;
-}
+NoSourceFileError::NoSourceFileError()
+    : GeneralError("Input file doesn't exist.") {}
+
+LexicalError::LexicalError(std::string str) : std::runtime_error(str) {}
+
+UnexpectedZeroError::UnexpectedZeroError()
+    : LexicalError(
+          "Incorrect number format (unexpected zero at the beginning?)") {}
+
+ExtraDotError::ExtraDotError()
+    : LexicalError("Incorrect number format (extra dot?)") {}
+
+ExpectedDigitError::ExpectedDigitError()
+    : LexicalError("Incorrect number format (digit expected)") {}
+
+InvalidTokenError::InvalidTokenError() : LexicalError("Invalid token") {}
+
+NoCommentEndError::NoCommentEndError() : LexicalError("No comment end") {}
+
+NoQuoteEndError::NoQuoteEndError() : LexicalError("No quote end") {}
 
 SyntaxError::SyntaxError(Token got_) : got(got_) {}
 
@@ -81,6 +89,36 @@ const char *UnexpectedTokenValExprError::what() {
   return "Unexpected token while parsing ValueExpression\n";
 }
 
+GeneratorError::GeneratorError(std::string str) : std::runtime_error(str) {}
 
+StringAsOperandError::StringAsOperandError()
+    : GeneratorError("Cannot use string value as operand.") {}
+
+UndefinedFunctionError::UndefinedFunctionError(std::string identifier)
+    : GeneratorError("Function with " + identifier + " identifier not found.") {
+}
+
+UndefinedVariableError::UndefinedVariableError(std::string identifier)
+    : GeneratorError("Variable with " + identifier + " identifier not found.") {
+}
+
+VariableRedefintionError::VariableRedefintionError(std::string identifier)
+    : GeneratorError("Cannot redefine variable with " + identifier +
+                     " identifier") {}
+
+FunctionReturnValueMismatchError::FunctionReturnValueMismatchError()
+    : GeneratorError("Function returned type and value type does not match.") {}
+
+VoidFunretValueError::VoidFunretValueError()
+    : GeneratorError("Function of type void cannot return value.") {}
+
+UnpritableValueError::UnpritableValueError()
+    : GeneratorError("Cannot print variable of this type.") {}
+
+VarAssignTypeMismatch::VarAssignTypeMismatch()
+    : GeneratorError("Type of value does not match variable type.") {}
+
+StringAsConditionError::StringAsConditionError()
+    : GeneratorError("String cannot be used in condition.") {}
 
 } // namespace wasmabi

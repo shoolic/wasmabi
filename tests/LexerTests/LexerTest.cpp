@@ -1,8 +1,8 @@
 #include "Lexer/Lexer.hpp"
+#include "Helpers/NullOstream.hpp"
+#include "Helpers/VariantOstream.hpp"
 #include "SourceController/SourceController.hpp"
 #include "Token/Token.hpp"
-#include "helpers/NullOstream.hpp"
-#include "helpers/VariantOstream.hpp"
 
 #include <boost/test/unit_test.hpp>
 #include <sstream>
@@ -28,9 +28,8 @@ BOOST_AUTO_TEST_CASE(UnknownChar) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
-  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
+
+  BOOST_CHECK_THROW(lexer.nextToken(), InvalidTokenError);
 }
 
 BOOST_AUTO_TEST_CASE(CommentSkip) {
@@ -39,6 +38,7 @@ BOOST_AUTO_TEST_CASE(CommentSkip) {
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
   Token token = lexer.nextToken();
+
   BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
   BOOST_CHECK_EQUAL(token.getType(), Token::Type::Eof);
 }
@@ -48,9 +48,7 @@ BOOST_AUTO_TEST_CASE(CommentSkipNoEnd) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()), "");
-  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
+  BOOST_CHECK_THROW(lexer.nextToken(), NoCommentEndError);
 }
 
 BOOST_AUTO_TEST_CASE(StringLiteral) {
@@ -69,10 +67,7 @@ BOOST_AUTO_TEST_CASE(StringLiteralNoEnd) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
-  BOOST_CHECK_EQUAL(std::get<std::string>(token.getValue()),
-                    "This is a string literal");
+  BOOST_CHECK_THROW(lexer.nextToken(), NoQuoteEndError);
 }
 
 BOOST_AUTO_TEST_CASE(IntLiteral) {
@@ -100,8 +95,8 @@ BOOST_AUTO_TEST_CASE(IntUnexpectedZero) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
+
+  BOOST_CHECK_THROW(lexer.nextToken(), UnexpectedZeroError);
 }
 
 BOOST_AUTO_TEST_CASE(FloatExpectedDigitAfterDot) {
@@ -109,8 +104,8 @@ BOOST_AUTO_TEST_CASE(FloatExpectedDigitAfterDot) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
+
+  BOOST_CHECK_THROW(lexer.nextToken(), ExpectedDigitError);
 }
 
 BOOST_AUTO_TEST_CASE(FloatTwoDots) {
@@ -118,8 +113,8 @@ BOOST_AUTO_TEST_CASE(FloatTwoDots) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Token token = lexer.nextToken();
-  BOOST_CHECK_EQUAL(token.getType(), Token::Type::Invalid);
+
+  BOOST_CHECK_THROW(lexer.nextToken(), ExtraDotError);
 }
 
 BOOST_AUTO_TEST_CASE(CommentSkipWithFollowingToken) {

@@ -1,6 +1,6 @@
 #include "ErrorHandler.hpp"
-#include "../helpers/OstreamModifier.hpp"
-#include "../helpers/VariantOstream.hpp"
+#include "../Helpers/OstreamModifier.hpp"
+#include "../Helpers/VariantOstream.hpp"
 #include <iostream>
 
 namespace wasmabi {
@@ -8,8 +8,8 @@ ErrorHandler::ErrorHandler(SourceController &sourceController_,
                            std::ostream &ostream_)
     : sourceController(sourceController_), ostream(ostream_) {}
 
-void ErrorHandler::registerLexicalError(Error::Lexical error) {
-  pre() << error << std::endl << std::endl;
+void ErrorHandler::registerLexicalError(LexicalError &error) {
+  pre() << error.what() << std::endl << std::endl;
 }
 
 std::ostream &ErrorHandler::pre() {

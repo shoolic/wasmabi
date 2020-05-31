@@ -11,7 +11,8 @@ namespace wasmabi {
 class ErrorHandler {
 public:
   ErrorHandler(SourceController &sourceController_, std::ostream &ostream);
-  void registerLexicalError(Error::Lexical error);
+  void registerLexicalError(LexicalError &error);
+
   void registerSyntaxError(SyntaxError *e);
   void registerUnexpectedTokenSyntaxError(UnexpectedToken *e);
 

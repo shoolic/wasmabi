@@ -183,7 +183,7 @@ llvm::Value *Generator::gen(FunctionCallExpression &node) {
   auto function = module->getFunction(node.identifier);
 
   if (!function) {
-    throw std::runtime_error("Function with given identifier not found");
+    throw UndefinedFunctionError(node.identifier);
   }
 
   return builder.CreateCall(function, params);
@@ -198,12 +198,12 @@ llvm::Value *Generator::gen(UnaryExpression &node) {
   auto value = node.operand->gen(*this);
 
   if (isString(value)) {
-    throw std::runtime_error("cannot use string value as operand");
+    throw GeneratorError("Cannot use string value as operand.");
   }
 
   switch (node.type) {
   case UnaryExpression::Type::Not:
-
+    // todo
     return builder.CreateNot(value);
     break;
   case UnaryExpression::Type::Minus:
@@ -220,7 +220,7 @@ llvm::Value *Generator::gen(BinaryExpression &node) {
   auto rightValue = node.rightOperand->gen(*this);
 
   if (isString(leftValue) || isString(rightValue)) {
-    throw std::runtime_error("cannot use string value as operand");
+    throw StringAsOperandError();
   }
 
   if (isFloat(leftValue) && isFloat(rightValue)) {
@@ -454,7 +454,7 @@ llvm::Value *Generator::gen(LoopStatement &node) {
   builder.SetInsertPoint(loopContinueBlock);
   function->getBasicBlockList().push_back(loopContinueBlock);
 
-  return loopBlock;
+  return loopContinueBlock;
 }
 
 llvm::Value *Generator::gen(IfStatement &node) {
@@ -476,7 +476,7 @@ llvm::Value *Generator::gen(IfStatement &node) {
   builder.SetInsertPoint(ifContinueBlock);
   function->getBasicBlockList().push_back(ifContinueBlock);
 
-  return nullptr;
+  return ifContinueBlock;
 }
 
 llvm::Value *Generator::gen(ReturnStatement &node) {
@@ -485,14 +485,13 @@ llvm::Value *Generator::gen(ReturnStatement &node) {
   if (node.value) {
     auto retVal = node.value->gen(*this);
     if (function->getReturnType() != retVal->getType()) {
-      throw std::runtime_error(
-          "function returned type and value type does not match");
+      throw FunctionReturnValueMismatchError();
     }
     return builder.CreateRet(retVal);
   }
 
   if (function->getType() != llvm::Type::getVoidTy(context)) {
-    throw std::runtime_error("function of type void cannot return value");
+    throw VoidFunretValueError();
   }
 
   return builder.CreateRetVoid();
@@ -516,7 +515,7 @@ llvm::Value *Generator::gen(PrintStatement &node) {
     return builder.CreateCall(printFun(), args);
   }
 
-  throw std::runtime_error("cannot print variable of this type");
+  throw UnpritableValueError();
 }
 
 llvm::Value *Generator::gen(VariableDefinitionStatement &node) {
@@ -527,7 +526,7 @@ llvm::Value *Generator::gen(VariableDefinitionStatement &node) {
   const auto *rValuePtr = rValue->getType()->getPointerTo();
 
   if (rValuePtr != allocVar->getType()) {
-    throw std::runtime_error("type of value does not match variable type");
+    throw VarAssignTypeMismatch();
   }
 
   llvm::StoreInst *fullValue = builder.CreateStore(rValue, allocVar);
@@ -543,7 +542,7 @@ llvm::Value *Generator::gen(VariableAssignmentStatement &node) {
   llvm::Value *allocVar = getVar(node.identifier);
 
   if (allocVar->getType() != rValue->getType()->getPointerTo()) {
-    throw std::runtime_error("cannot assign, types differ");
+    throw VarAssignTypeMismatch();
   }
 
   auto fullValue = builder.CreateStore(rValue, allocVar);
@@ -585,7 +584,7 @@ llvm::Value *Generator::getVar(std::string name) {
     }
   }
 
-  throw std::runtime_error("no variable found");
+  throw UndefinedVariableError(name);
 }
 
 void Generator::insertVar(std::string name, llvm::Value *value) {
@@ -593,7 +592,7 @@ void Generator::insertVar(std::string name, llvm::Value *value) {
   auto it = map.find(name);
 
   if (it != map.end()) {
-    throw std::runtime_error("variable already exists");
+    throw VariableRedefintionError(name);
   }
 
   map[name] = value;
@@ -602,7 +601,7 @@ void Generator::insertVar(std::string name, llvm::Value *value) {
 llvm::Value *Generator::makeConditionFromValue(llvm::Value *value) {
 
   if (isString(value)) {
-    throw std::runtime_error("string cannot be used in condition");
+    throw StringAsConditionError();
   } else if (isInt(value)) {
     return builder.CreateICmpNE(
         value, llvm::ConstantInt::get(builder.getInt32Ty(), 0, true));

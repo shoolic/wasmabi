@@ -17,19 +17,20 @@ Lexer::Lexer(SourceController &sourceController_, ErrorHandler &errorHandler_)
       } {}
 
 const Token Lexer::nextToken() {
-  Token token;
-
-  for (auto &tryEntryFunction : entryFunctions) {
-    skipWhitespaces();
-    if (tryEntryFunction(token)) {
-      return token;
+  try {
+    Token token;
+    for (auto &tryEntryFunction : entryFunctions) {
+      skipWhitespaces();
+      if (tryEntryFunction(token)) {
+        return token;
+      }
     }
+
+    throw InvalidTokenError();
+  } catch (LexicalError &err) {
+    errorHandler.registerLexicalError(err);
+    throw;
   }
-
-  errorHandler.registerLexicalError(Error::Lexical::InvalidToken);
-
-  token.setType(Token::Type::Invalid);
-  return token;
 }
 
 void Lexer::skipWhitespaces() {
@@ -44,10 +45,7 @@ bool Lexer::trySkipComment(Token &token) {
 
     while (sourceController.get() != Boundaries::Comment) {
       if (sourceController.end()) {
-        errorHandler.registerLexicalError(Error::Lexical::NoCommentEnd);
-        token.setType(Token::Type::Invalid);
-
-        return true;
+        throw NoCommentEndError();
       }
     };
   }
@@ -75,10 +73,7 @@ bool Lexer::tryStringLiteral(Token &token) {
     while ((c = sourceController.get()) != Boundaries::Quote) {
       value += c;
       if (sourceController.end()) {
-        errorHandler.registerLexicalError(Error::Lexical::NoQuoteEnd);
-        token.value = value;
-        token.setType(Token::Type::Invalid);
-        return true;
+        throw NoQuoteEndError();
       }
     }
 
@@ -102,27 +97,19 @@ bool Lexer::tryNumericLiteral(Token &token) {
   if (c == '0' && isdigit(sourceController.peek())) {
     token.setType(Token::Type::Invalid);
     token.value = value;
-    errorHandler.registerLexicalError(Error::Lexical::UnexpectedZero);
-    return true;
+    throw UnexpectedZeroError();
   }
 
   while (true) {
     if (sourceController.peek() == '.') {
       if (token.type == Token::Type::FloatLiteral) {
-        errorHandler.registerLexicalError(Error::Lexical::ExtraDot);
-        token.setType(Token::Type::Invalid);
-        token.value = value;
+        throw ExtraDotError();
 
-        return true;
       } else {
         token.setType(Token::Type::FloatLiteral);
         value += sourceController.get();
         if (!isdigit(sourceController.peek())) {
-          errorHandler.registerLexicalError(Error::Lexical::ExpectedDigit);
-          token.setType(Token::Type::Invalid);
-          token.value = value;
-
-          return true;
+          throw ExpectedDigitError();
         }
       }
     } else if (!isdigit(sourceController.peek())) {

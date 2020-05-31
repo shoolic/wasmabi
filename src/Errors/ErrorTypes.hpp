@@ -7,20 +7,49 @@
 #include <string>
 namespace wasmabi {
 
-class Error {
+class GeneralError : public std::runtime_error {
 public:
-  enum class Lexical {
-    UnexpectedZero,
-    ExtraDot,
-    ExpectedDigit,
-    InvalidToken,
-    NoCommentEnd,
-    NoQuoteEnd,
-  };
+  GeneralError(std::string str);
+};
 
-private:
-  static std::map<Lexical, std::string> lexicalMap;
-  friend std::ostream &operator<<(std::ostream &os, const Error::Lexical &err);
+class NoSourceFileError : public GeneralError {
+public:
+  NoSourceFileError();
+};
+
+class LexicalError : public std::runtime_error {
+public:
+  LexicalError(std::string str);
+};
+
+class UnexpectedZeroError : public LexicalError {
+public:
+  UnexpectedZeroError();
+};
+
+class ExtraDotError : public LexicalError {
+public:
+  ExtraDotError();
+};
+
+class ExpectedDigitError : public LexicalError {
+public:
+  ExpectedDigitError();
+};
+
+class InvalidTokenError : public LexicalError {
+public:
+  InvalidTokenError();
+};
+
+class NoCommentEndError : public LexicalError {
+public:
+  NoCommentEndError();
+};
+
+class NoQuoteEndError : public LexicalError {
+public:
+  NoQuoteEndError();
 };
 
 class SyntaxError : public std::exception {
@@ -91,7 +120,55 @@ public:
   const char *what();
 };
 
-class GeneratorError : public std::runtime_error {};
+class GeneratorError : public std::runtime_error {
+public:
+  GeneratorError(std::string str);
+};
+
+class StringAsOperandError : public GeneratorError {
+public:
+  StringAsOperandError();
+};
+
+class UndefinedFunctionError : public GeneratorError {
+public:
+  UndefinedFunctionError(std::string identifier);
+};
+
+class UndefinedVariableError : public GeneratorError {
+public:
+  UndefinedVariableError(std::string identifier);
+};
+
+class VariableRedefintionError : public GeneratorError {
+public:
+  VariableRedefintionError(std::string identifier);
+};
+
+class FunctionReturnValueMismatchError : public GeneratorError {
+public:
+  FunctionReturnValueMismatchError();
+};
+
+class VoidFunretValueError : public GeneratorError {
+public:
+  VoidFunretValueError();
+};
+
+class UnpritableValueError : public GeneratorError {
+public:
+  UnpritableValueError();
+};
+
+class VarAssignTypeMismatch : public GeneratorError {
+public:
+  VarAssignTypeMismatch();
+};
+
+class StringAsConditionError : public GeneratorError {
+public:
+  StringAsConditionError();
+};
 
 } // namespace wasmabi
 

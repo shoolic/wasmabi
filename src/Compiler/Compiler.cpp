@@ -20,6 +20,11 @@ Compiler::Compiler(std::string filename_, std::string target_,
       basename(std::filesystem::path(filename).replace_extension()) {}
 
 void Compiler::compile() {
+
+  if (!std::filesystem::exists(filename)) {
+    throw NoSourceFileError();
+  }
+
   std::ifstream inputfile(filename);
   SourceController sourceController(inputfile,
                                     std::filesystem::absolute(filename));

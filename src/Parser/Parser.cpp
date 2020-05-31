@@ -105,8 +105,10 @@ std::unique_ptr<Program> Parser::parse() {
     return program;
   } catch (UnexpectedToken *e) {
     errorHandler.registerUnexpectedTokenSyntaxError(e);
+    throw;
   } catch (SyntaxError *e) {
     errorHandler.registerSyntaxError(e);
+    throw;
   }
   return program;
 }
