@@ -11,6 +11,11 @@ NoSourceFileError::NoSourceFileError()
 
 LexicalError::LexicalError(std::string str) : std::runtime_error(str) {}
 
+
+UnexpSignAfterExclamationError::UnexpSignAfterExclamationError()
+    : LexicalError(
+          "Expected !=") {}
+
 UnexpectedZeroError::UnexpectedZeroError()
     : LexicalError(
           "Incorrect number format (unexpected zero at the beginning?)") {}

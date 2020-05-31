@@ -41,20 +41,16 @@ class Generator;
 
 #define ACCEPT_GENERATOR llvm::Value *gen(Generator &generator) override;
 
-#define ACCEPT_GENERATOR_NULL_RETURN                                           \
-  llvm::Value *gen(Generator &generator) override;
+#define ACCEPT_GENERATOR llvm::Value *gen(Generator &generator) override;
 
 struct Node {
   virtual void accept(Visitor &visit) = 0;
-
-  virtual llvm::Value *gen(Generator &gen) = 0;
 };
 
 struct Program : public Node {
   std::vector<std::unique_ptr<FunctionDefinition>> functionDefintions;
 
   ACCEPT_VISITOR
-  ACCEPT_GENERATOR
 };
 
 struct FunctionDefinition : public Node {
@@ -64,7 +60,6 @@ struct FunctionDefinition : public Node {
   std::unique_ptr<FunctionType> returnedType;
 
   ACCEPT_VISITOR
-  ACCEPT_GENERATOR_NULL_RETURN
 };
 
 struct FunctionDefinitionParameter : public Node {
@@ -72,7 +67,6 @@ struct FunctionDefinitionParameter : public Node {
   std::unique_ptr<VariableType> type;
 
   ACCEPT_VISITOR
-  ACCEPT_GENERATOR
 };
 
 struct Block : public Node {
@@ -80,10 +74,12 @@ struct Block : public Node {
       instructions;
 
   ACCEPT_VISITOR
-  ACCEPT_GENERATOR
 };
 
-struct Statement : public Node {};
+struct Statement : public Node {
+
+  virtual llvm::Value *gen(Generator &gen) = 0;
+};
 
 struct LoopStatement : public Statement {
   std::unique_ptr<ValueExpression> condition;
@@ -150,7 +146,6 @@ struct VariableType : public Node {
   VariableType(Type type_);
 
   ACCEPT_VISITOR
-  ACCEPT_GENERATOR_NULL_RETURN
 };
 
 struct FunctionType : public Node {
@@ -159,11 +154,10 @@ struct FunctionType : public Node {
   FunctionType(Type type_);
 
   ACCEPT_VISITOR
-  ACCEPT_GENERATOR_NULL_RETURN
 };
 
 struct ValueExpression : public Node {
-  // virtual void print() const = 0;
+  virtual llvm::Value *gen(Generator &gen) = 0;
 };
 
 struct IdentifierAsExpression : public ValueExpression {
@@ -194,7 +188,6 @@ struct SelectExpressionCase : public Node {
   std::unique_ptr<ValueExpression> value;
 
   ACCEPT_VISITOR
-  ACCEPT_GENERATOR
 };
 
 struct UnaryExpression : public ValueExpression {
@@ -221,7 +214,6 @@ struct BinaryExpression : public ValueExpression {
     Pow,
     And,
     Or,
-    // Not,
     Equals,
     NotEquals,
     Greater,

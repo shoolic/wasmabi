@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(PowRightAssociattion) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Parser parser(lexer, errorHandler, TEST_OSTREAM);
+  Parser parser(lexer, errorHandler);
   auto ast = parser.parse();
 
   VariableAssignmentStatement *s =
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(Parenthesis) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Parser parser(lexer, errorHandler, TEST_OSTREAM);
+  Parser parser(lexer, errorHandler);
   auto ast = parser.parse();
 
   VariableAssignmentStatement *s =
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(UnaryMinus) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Parser parser(lexer, errorHandler, TEST_OSTREAM);
+  Parser parser(lexer, errorHandler);
   auto ast = parser.parse();
 
   VariableAssignmentStatement *s =
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(FunCall) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Parser parser(lexer, errorHandler, TEST_OSTREAM);
+  Parser parser(lexer, errorHandler);
   auto ast = parser.parse();
 
   VariableAssignmentStatement *s =
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(OperatorPrecedence) {
   SourceController sourceController(ss);
   ErrorHandler errorHandler(sourceController, TEST_OSTREAM);
   Lexer lexer(sourceController, errorHandler);
-  Parser parser(lexer, errorHandler, TEST_OSTREAM);
+  Parser parser(lexer, errorHandler);
   auto ast = parser.parse();
 
   VariableAssignmentStatement *s =

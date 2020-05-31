@@ -30,7 +30,6 @@ struct FunctionCallStatement;
 
 class Visitor {
 public:
-  // virtual void visit(Node &node) = 0;
   virtual void visit(Program &node) = 0;
   virtual void visit(Literal &node) = 0;
   virtual void visit(VariableType &node) = 0;
@@ -40,12 +39,10 @@ public:
   virtual void visit(FunctionDefinitionParameter &node) = 0;
   virtual void visit(FunctionCallExpression &node) = 0;
   virtual void visit(IdentifierAsExpression &node) = 0;
-  // virtual void visit(ValueExpression &node) = 0;
   virtual void visit(UnaryExpression &node) = 0;
   virtual void visit(BinaryExpression &node) = 0;
   virtual void visit(SelectExpression &node) = 0;
   virtual void visit(SelectExpressionCase &node) = 0;
-  // virtual void visit(Statement &node) = 0;
   virtual void visit(LoopStatement &node) = 0;
   virtual void visit(IfStatement &node) = 0;
   virtual void visit(ReturnStatement &node) = 0;

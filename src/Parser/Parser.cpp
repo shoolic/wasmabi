@@ -2,10 +2,8 @@
 
 namespace wasmabi {
 
-Parser::Parser(Lexer &lexer_, ErrorHandler &errorHandler_,
-               std::ostream &output_)
-    : lexer(lexer_), errorHandler(errorHandler_), output(output_),
-      peeked(false),
+Parser::Parser(Lexer &lexer_, ErrorHandler &errorHandler_)
+    : lexer(lexer_), errorHandler(errorHandler_), peeked(false),
       tokenToVarTypeMap{
           {Token::Type::IntTypename, VariableType::Type::Int},
           {Token::Type::FloatTypename, VariableType::Type::Float},
@@ -195,9 +193,6 @@ Parser::createFunctionDefinitonParameter() {
 }
 
 std::string Parser::createIdentifier(Token t) {
-  // expect(t, Token::Type::Identifier);
-  // return std::make_unique<Identifier>(std::get<std::string>(t.getValue()));
-
   return std::get<std::string>(t.getValue());
 }
 
@@ -311,7 +306,6 @@ Parser::createVariableDefinitionStatement() {
       break;
     }
 
-    // expect(next(), Token::Type::Semicolon);
     return variableDefinitionStatement;
   } else if (determiner == Token::Type::AssignmentOperator) {
     variableDefinitionStatement->value = createValueExpression();
@@ -378,7 +372,6 @@ Parser::createIdentifierAsExpression(Token t) {
 }
 
 std::unique_ptr<SelectExpression> Parser::createSelectExpression() {
-  // { value when cond}
   auto select = std::make_unique<SelectExpression>();
 
   expect(next(), Token::Type::OpeningBracket);
@@ -521,9 +514,9 @@ std::map<Token::Type, int> Parser::bindingPowerMap = {
     {Token::Type::Less, 50},
     {Token::Type::LessOrEqual, 50},
     {Token::Type::Equals, 50},
-    {Token::Type::NotEquals, 10},
-    {Token::Type::OrOperator, 10},
-    {Token::Type::AndOperator, 10},
-    {Token::Type::NotOperator, 10},
+    {Token::Type::NotEquals, 60},
+    {Token::Type::OrOperator, 60},
+    {Token::Type::AndOperator, 60},
+    {Token::Type::NotOperator, 60},
 };
 } // namespace wasmabi

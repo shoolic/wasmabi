@@ -1,7 +1,6 @@
 #include "Node.hpp"
-#include "../Helpers/VariantOstream.hpp"
-
 #include "../Generator/Generator.hpp"
+#include "../Helpers/VariantOstream.hpp"
 
 namespace wasmabi {
 FunctionType::FunctionType(Type type_) : type(type_) {}
@@ -74,24 +73,7 @@ void VariableAssignmentStatement::accept(Visitor &visitor) {
 }
 void FunctionCallStatement::accept(Visitor &visitor) { visitor.visit(*this); }
 
-llvm::Value *Program::gen(Generator &generator) { return generator.gen(*this); }
-
 llvm::Value *Literal::gen(Generator &generator) { return generator.gen(*this); }
-llvm::Value *VariableType::gen(Generator &generator) {
-  generator.gen(*this);
-  return nullptr;
-}
-llvm::Value *FunctionType::gen(Generator &generator) {
-  generator.gen(*this);
-  return nullptr;
-}
-llvm::Value *Block::gen(Generator &generator) { return generator.gen(*this); }
-llvm::Value *FunctionDefinition::gen(Generator &generator) {
-  return generator.gen(*this);
-}
-llvm::Value *FunctionDefinitionParameter::gen(Generator &generator) {
-  return nullptr;
-}
 
 llvm::Value *FunctionCallExpression::gen(Generator &generator) {
   return generator.gen(*this);
@@ -109,8 +91,6 @@ llvm::Value *BinaryExpression::gen(Generator &generator) {
 llvm::Value *SelectExpression::gen(Generator &generator) {
   return generator.gen(*this);
 }
-llvm::Value *SelectExpressionCase::gen(Generator &generator) { return nullptr; }
-
 llvm::Value *LoopStatement::gen(Generator &generator) {
   return generator.gen(*this);
 }

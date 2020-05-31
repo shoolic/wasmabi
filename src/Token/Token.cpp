@@ -2,7 +2,7 @@
 
 namespace wasmabi {
 
-Token::Token() : type(Token::Type::Unknown) {}
+Token::Token() : type(Token::Type::Invalid) {}
 
 const std::variant<std::string, int, float> Token::getValue() const {
   return value;
@@ -10,11 +10,7 @@ const std::variant<std::string, int, float> Token::getValue() const {
 
 Token::Type Token::getType() const { return type; }
 
-void Token::setType(Token::Type type_) {
-  if (type != Type::Invalid) {
-    type = type_;
-  }
-}
+void Token::setType(Token::Type type_) { type = type_; }
 
 std::map<Token::Type, std::string> Token::map = {
     {Token::Type::Eof, "Eof"},
@@ -58,7 +54,6 @@ std::map<Token::Type, std::string> Token::map = {
     {Token::Type::When, "When"},
     {Token::Type::Otherwise, "Otherwise"},
     {Token::Type::Invalid, "Invalid"},
-    {Token::Type::Unknown, "Unknown"},
 }; // namespace wasmabi
 
 std::ostream &operator<<(std::ostream &out, const Token::Type &type) {

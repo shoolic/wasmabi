@@ -9,7 +9,6 @@ namespace wasmabi {
 class ParenthesisPrintVisitor : public Visitor {
 public:
   std::string getString(ValueExpression &valueExpression);
-  // void visit(Node &node);
   void visit(Program &node);
   void visit(Literal &node);
   void visit(VariableType &node);
@@ -19,12 +18,10 @@ public:
   void visit(FunctionDefinitionParameter &node);
   void visit(FunctionCallExpression &node);
   void visit(IdentifierAsExpression &node);
-  // void visit(ValueExpression &node);
   void visit(UnaryExpression &node);
   void visit(BinaryExpression &node);
   void visit(SelectExpression &node);
   void visit(SelectExpressionCase &node);
-  // void visit(Statement &node);
   void visit(LoopStatement &node);
   void visit(IfStatement &node);
   void visit(ReturnStatement &node);

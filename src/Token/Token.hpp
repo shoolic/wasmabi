@@ -65,7 +65,6 @@ public:
     Otherwise,
 
     Invalid,
-    Unknown
   };
 
   struct potentiallyDoubleChar { // TODO move to lexer

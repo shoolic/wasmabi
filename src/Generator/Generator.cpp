@@ -10,41 +10,19 @@ Generator::Generator(std::ostream &output_, std::string moduleName_,
     : output(output_), moduleName(moduleName_), sourceFilePath(sourceFilePath_),
       module(std::make_unique<llvm::Module>(moduleName, context)) {}
 
-llvm::Value *Generator::gen(Program &node) {
+void Generator::gen(Program &node) {
 
   for (auto &funDef : node.functionDefintions) {
-    funDef->gen(*this);
+    genFunHeader(*funDef);
   }
 
   for (auto &funDef : node.functionDefintions) {
-    auto function = module->getFunction(funDef->identifier);
-    llvm::BasicBlock *functionBlock =
-        llvm::BasicBlock::Create(context, "entry", function);
-    builder.SetInsertPoint(functionBlock);
-
-    values.push_back(std::map<std::string, llvm::Value *>{});
-
-    unsigned idx = 0;
-    for (auto &arg : function->args()) {
-      llvm::AllocaInst *alloca = builder.CreateAlloca(
-          arg.getType(), 0, funDef->parameters[idx]->identifier.c_str());
-
-      builder.CreateStore(static_cast<llvm::Value *>(&arg), alloca);
-      insertVar(funDef->parameters[idx]->identifier, alloca);
-      idx++;
-    }
-
-    auto functionBlockValue = funDef->block->gen(*this);
-    llvm::verifyFunction(*function);
-
-    values.pop_back();
+    genFunBody(*funDef);
   }
 
   module->setSourceFileName(sourceFilePath);
   llvm::raw_os_ostream ostream(output);
   module->print(ostream, nullptr);
-
-  return nullptr;
 }
 
 llvm::FunctionCallee Generator::printFun() {
@@ -74,7 +52,7 @@ llvm::Value *Generator::powi(llvm::Value *base, llvm::Value *exponent) {
   return powValue;
 }
 
-llvm::Function *Generator::gen(FunctionDefinition &node) {
+void Generator::genFunHeader(FunctionDefinition &node) {
   std::vector<llvm::Type *> params;
   for (auto &param : node.parameters) {
     params.push_back(gen(*param->type));
@@ -86,8 +64,36 @@ llvm::Function *Generator::gen(FunctionDefinition &node) {
   llvm::Function *function = llvm::Function::Create(
       functionDeclaration, llvm::Function::ExternalLinkage, node.identifier,
       module.get());
+}
 
-  return function;
+void Generator::genFunBody(FunctionDefinition &funDef) {
+  const auto function = module->getFunction(funDef.identifier);
+  llvm::BasicBlock *functionBlock =
+      llvm::BasicBlock::Create(context, "entry", function);
+  builder.SetInsertPoint(functionBlock);
+
+  values.push_back(std::map<std::string, llvm::Value *>{});
+
+  genFunParams(funDef);
+
+  gen(*(funDef.block));
+  llvm::verifyFunction(*function);
+
+  values.pop_back();
+}
+
+void Generator::genFunParams(FunctionDefinition &funDef) {
+  const auto function = module->getFunction(funDef.identifier);
+
+  unsigned idx = 0;
+  for (auto &arg : function->args()) {
+    llvm::AllocaInst *alloca = builder.CreateAlloca(
+        arg.getType(), 0, funDef.parameters[idx]->identifier.c_str());
+
+    builder.CreateStore(static_cast<llvm::Value *>(&arg), alloca);
+    insertVar(funDef.parameters[idx]->identifier, alloca);
+    idx++;
+  }
 }
 
 llvm::Value *Generator::gen(Literal &node) {
@@ -106,22 +112,22 @@ llvm::Value *Generator::gen(Literal &node) {
 }
 
 llvm::Constant *Generator::getStringLiteral(std::string str) {
-  auto it = globalStrings.find(str);
+  const auto it = globalStrings.find(str);
   if (it != globalStrings.end()) {
     return it->second;
   }
 
-  auto charType = llvm::Type::getInt8Ty(context);
-  auto stringType = llvm::ArrayType::get(charType, str.size() + 1);
+  const auto charType = llvm::Type::getInt8Ty(context);
+  const auto stringType = llvm::ArrayType::get(charType, str.size() + 1);
 
-  auto stringInitializer =
+  const auto stringInitializer =
       llvm::ConstantDataArray::getString(context, str.c_str(), true);
 
-  auto stringLiteral = new llvm::GlobalVariable(
+  const auto stringLiteral = new llvm::GlobalVariable(
       *module, stringType, true, llvm::GlobalVariable::PrivateLinkage,
       stringInitializer, str);
 
-  auto stringConst = llvm::ConstantExpr::getBitCast(
+  const auto stringConst = llvm::ConstantExpr::getBitCast(
       stringLiteral, llvm::Type::getInt8PtrTy(context));
 
   globalStrings[str] = stringConst;
@@ -161,12 +167,12 @@ llvm::Value *Generator::gen(Block &node) {
   for (auto &instr : node.instructions) {
     if (instr.index() == 0) {
       values.push_back(std::map<std::string, llvm::Value *>{});
-      std::get<std::unique_ptr<Block>>(instr)->gen(*this);
+      gen(*std::get<std::unique_ptr<Block>>(instr));
       values.pop_back();
     }
 
     if (instr.index() == 1) {
-      std::get<std::unique_ptr<Statement>>(instr)->gen(*this);
+      (std::get<std::unique_ptr<Statement>>(instr))->gen(*this);
     }
   }
 
@@ -180,7 +186,7 @@ llvm::Value *Generator::gen(FunctionCallExpression &node) {
     params.push_back(param->gen(*this));
   }
 
-  auto function = module->getFunction(node.identifier);
+  const auto function = module->getFunction(node.identifier);
 
   if (!function) {
     throw UndefinedFunctionError(node.identifier);
@@ -203,8 +209,10 @@ llvm::Value *Generator::gen(UnaryExpression &node) {
 
   switch (node.type) {
   case UnaryExpression::Type::Not:
-    // todo
-    return builder.CreateNot(value);
+    value = makeBoolFromValue(value);
+    value = builder.CreateNot(value);
+    value = makeInt32FromValue(value);
+    return value;
     break;
   case UnaryExpression::Type::Minus:
     return builder.CreateNeg(value);
@@ -230,8 +238,6 @@ llvm::Value *Generator::gen(BinaryExpression &node) {
   if (isInt(leftValue) && isInt(rightValue)) {
     return genIntBinExpr(node, leftValue, rightValue);
   }
-
-  auto currentBlock = builder.GetInsertBlock()->getParent();
 
   if (isInt(leftValue)) {
 
@@ -263,20 +269,17 @@ llvm::Value *Generator::genFloatBinExpr(BinaryExpression &node,
   case BinaryExpression::Type::Pow:
     return builder.CreateCall(powfFun(), {leftValue, rightValue});
   case BinaryExpression::Type::And:
-    llvm::CastInst::Create(llvm::CastInst::FPToSI, leftValue,
-                           builder.getInt1Ty());
-    llvm::CastInst::Create(llvm::CastInst::FPToSI, rightValue,
-                           builder.getInt1Ty());
+    leftValue = makeBoolFromValue(leftValue);
+    rightValue = makeBoolFromValue(rightValue);
     tmp = builder.CreateAnd(leftValue, rightValue);
-    return builder.CreateZExt(tmp, builder.getInt32Ty());
-
+    tmp = makeInt32FromValue(tmp);
+    return tmp;
   case BinaryExpression::Type::Or:
-    llvm::CastInst::Create(llvm::CastInst::FPToSI, leftValue,
-                           builder.getInt1Ty());
-    llvm::CastInst::Create(llvm::CastInst::FPToSI, rightValue,
-                           builder.getInt1Ty());
+    leftValue = makeBoolFromValue(leftValue);
+    rightValue = makeBoolFromValue(rightValue);
     tmp = builder.CreateOr(leftValue, rightValue);
-    return builder.CreateZExt(tmp, builder.getInt32Ty());
+    tmp = makeInt32FromValue(tmp);
+    return tmp;
 
   case BinaryExpression::Type::Equals:
     tmp = builder.CreateFCmpUEQ(leftValue, rightValue);
@@ -326,11 +329,17 @@ llvm::Value *Generator::genIntBinExpr(BinaryExpression &node,
   case BinaryExpression::Type::Pow:
     return powi(leftValue, rightValue);
   case BinaryExpression::Type::And:
-    throw std::runtime_error("");
-
+    leftValue = makeBoolFromValue(leftValue);
+    rightValue = makeBoolFromValue(rightValue);
+    tmp = builder.CreateAnd(leftValue, rightValue);
+    tmp = makeInt32FromValue(tmp);
+    return tmp;
   case BinaryExpression::Type::Or:
-    throw std::runtime_error("");
-
+    leftValue = makeBoolFromValue(leftValue);
+    rightValue = makeBoolFromValue(rightValue);
+    tmp = builder.CreateOr(leftValue, rightValue);
+    tmp = makeInt32FromValue(tmp);
+    return tmp;
   case BinaryExpression::Type::Equals:
     tmp = builder.CreateICmpEQ(leftValue, rightValue);
     return builder.CreateZExt(tmp, builder.getInt32Ty());
@@ -366,23 +375,24 @@ llvm::Value *Generator::gen(SelectExpression &node) {
   std::vector<llvm::BasicBlock *> selectCases;
   std::vector<llvm::Value *> selectCaseValues;
   std::vector<llvm::BasicBlock *> selectCaseBlocks;
-  auto function = builder.GetInsertBlock()->getParent();
-  auto currentBlock = builder.GetInsertBlock();
+  const auto function = builder.GetInsertBlock()->getParent();
+  const auto currentBlock = builder.GetInsertBlock();
 
   for (auto &selectCase : node.cases) {
-    auto selectcase = llvm::BasicBlock::Create(context, "selectcase");
-    auto selectcaseblock = llvm::BasicBlock::Create(context, "selectcaseblock");
+    const auto selectcase = llvm::BasicBlock::Create(context, "selectcase");
+    const auto selectcaseblock =
+        llvm::BasicBlock::Create(context, "selectcaseblock");
 
     selectCases.push_back(selectcase);
     selectCaseBlocks.push_back(selectcaseblock);
   }
 
-  auto otherwiseblock =
+  const auto otherwiseblock =
       llvm::BasicBlock::Create(context, "selectotherwiseblock");
   selectCases.push_back(otherwiseblock);
   selectCaseBlocks.push_back(otherwiseblock);
 
-  auto selectcont = llvm::BasicBlock::Create(context, "selectcont");
+  const auto selectcont = llvm::BasicBlock::Create(context, "selectcont");
 
   builder.CreateBr(selectCases[0]);
 
@@ -392,7 +402,7 @@ llvm::Value *Generator::gen(SelectExpression &node) {
     builder.SetInsertPoint(selectCases[idx]);
     function->getBasicBlockList().push_back(selectCases[idx]);
     llvm::Value *conditionValue =
-        makeConditionFromValue(selectCase->condition->gen(*this));
+        makeBoolFromValue(selectCase->condition->gen(*this));
 
     builder.CreateCondBr(conditionValue, selectCaseBlocks[idx],
                          selectCases[idx + 1]);
@@ -417,8 +427,8 @@ llvm::Value *Generator::gen(SelectExpression &node) {
   builder.SetInsertPoint(selectcont);
   function->getBasicBlockList().push_back(selectcont);
 
-  auto PHINode = builder.CreatePHI(otherwiseValue->getType(),
-                                   selectCases.size(), "selecttmp");
+  const auto PHINode = builder.CreatePHI(otherwiseValue->getType(),
+                                         selectCases.size(), "selecttmp");
 
   for (std::size_t i = 0; i < selectCases.size(); i++) {
     PHINode->addIncoming(selectCaseValues[i], selectCaseBlocks[i]);
@@ -428,8 +438,7 @@ llvm::Value *Generator::gen(SelectExpression &node) {
 }
 
 llvm::Value *Generator::gen(LoopStatement &node) {
-  auto function = builder.GetInsertBlock()->getParent();
-  auto currentBlock = builder.GetInsertBlock();
+  const auto function = builder.GetInsertBlock()->getParent();
 
   llvm::BasicBlock *loop = llvm::BasicBlock::Create(context, "loop");
 
@@ -442,13 +451,13 @@ llvm::Value *Generator::gen(LoopStatement &node) {
   function->getBasicBlockList().push_back(loop);
 
   builder.SetInsertPoint(loop);
-  auto conditionValue = makeConditionFromValue(node.condition->gen(*this));
+  const auto conditionValue = makeBoolFromValue(node.condition->gen(*this));
   builder.CreateCondBr(conditionValue, loopBlock, loopContinueBlock);
 
   builder.SetInsertPoint(loopBlock);
   function->getBasicBlockList().push_back(loopBlock);
 
-  auto loopBlockVal = node.block->gen(*this);
+  const auto loopBlockVal = gen(*node.block);
   builder.CreateBr(loop);
 
   builder.SetInsertPoint(loopContinueBlock);
@@ -458,10 +467,9 @@ llvm::Value *Generator::gen(LoopStatement &node) {
 }
 
 llvm::Value *Generator::gen(IfStatement &node) {
-  auto function = builder.GetInsertBlock()->getParent();
-  auto currentBlock = builder.GetInsertBlock();
+  const auto function = builder.GetInsertBlock()->getParent();
 
-  auto conditionValue = makeConditionFromValue(node.condition->gen(*this));
+  const auto conditionValue = makeBoolFromValue(node.condition->gen(*this));
   llvm::BasicBlock *ifBlock =
       llvm::BasicBlock::Create(context, "ifblock", function);
 
@@ -471,7 +479,7 @@ llvm::Value *Generator::gen(IfStatement &node) {
   builder.CreateCondBr(conditionValue, ifBlock, ifContinueBlock);
   builder.SetInsertPoint(ifBlock);
 
-  auto ifBlockValue = node.block->gen(*this);
+  const auto ifBlockValue = gen(*node.block);
 
   builder.SetInsertPoint(ifContinueBlock);
   function->getBasicBlockList().push_back(ifContinueBlock);
@@ -480,10 +488,10 @@ llvm::Value *Generator::gen(IfStatement &node) {
 }
 
 llvm::Value *Generator::gen(ReturnStatement &node) {
-  auto function = builder.GetInsertBlock()->getParent();
+  const auto function = builder.GetInsertBlock()->getParent();
 
   if (node.value) {
-    auto retVal = node.value->gen(*this);
+    const auto retVal = node.value->gen(*this);
     if (function->getReturnType() != retVal->getType()) {
       throw FunctionReturnValueMismatchError();
     }
@@ -498,7 +506,7 @@ llvm::Value *Generator::gen(ReturnStatement &node) {
 }
 
 llvm::Value *Generator::gen(PrintStatement &node) {
-  auto value = node.value->gen(*this);
+  const auto value = node.value->gen(*this);
 
   if (value->getType() == llvm::Type::getInt8PtrTy(context)) {
     std::vector<llvm::Value *> args{getStringLiteral("%s\n"), value};
@@ -545,7 +553,7 @@ llvm::Value *Generator::gen(VariableAssignmentStatement &node) {
     throw VarAssignTypeMismatch();
   }
 
-  auto fullValue = builder.CreateStore(rValue, allocVar);
+  const auto fullValue = builder.CreateStore(rValue, allocVar);
 
   return fullValue;
 }
@@ -574,10 +582,10 @@ bool Generator::sameType(llvm::Value *value1, llvm::Value *value2) {
   return value1->getType() == value2->getType();
 }
 
-llvm::Value *Generator::getVar(std::string name) {
+llvm::Value *Generator::getVar(std::string name) const {
 
   for (auto it = values.rbegin(); it != values.rend(); it++) {
-    auto binding = it->find(name);
+    const auto binding = it->find(name);
 
     if (binding != it->end()) {
       return binding->second;
@@ -589,7 +597,7 @@ llvm::Value *Generator::getVar(std::string name) {
 
 void Generator::insertVar(std::string name, llvm::Value *value) {
   auto &map = values.back();
-  auto it = map.find(name);
+  const auto it = map.find(name);
 
   if (it != map.end()) {
     throw VariableRedefintionError(name);
@@ -598,17 +606,20 @@ void Generator::insertVar(std::string name, llvm::Value *value) {
   map[name] = value;
 }
 
-llvm::Value *Generator::makeConditionFromValue(llvm::Value *value) {
+llvm::Value *Generator::makeBoolFromValue(llvm::Value *value) {
 
   if (isString(value)) {
     throw StringAsConditionError();
   } else if (isInt(value)) {
-    return builder.CreateICmpNE(
-        value, llvm::ConstantInt::get(builder.getInt32Ty(), 0, true));
+    return builder.CreateIntCast(value, builder.getInt1Ty(), true);
   } else {
-    return builder.CreateFCmpUNE(
-        value, llvm::ConstantFP::get(builder.getFloatTy(), 0));
+    return builder.CreateCast(llvm::CastInst::FPToUI, value,
+                              builder.getInt1Ty());
   }
+}
+
+llvm::Value *Generator::makeInt32FromValue(llvm::Value *value) {
+  return builder.CreateIntCast(value, builder.getInt32Ty(), false);
 }
 
 } // namespace wasmabi

@@ -154,6 +154,8 @@ bool Lexer::tryDoubleCharToken(Token &token) {
       token.value = value;
       token.setType(it->second.typeIfNextMatched);
       return true;
+    } else if (value == "!") {
+      throw UnexpSignAfterExclamationError();
     }
 
     token.value = value;
@@ -234,6 +236,6 @@ std::map<char, Lexer::potentiallyDoubleChar> Lexer::potentiallyDoubleCharMap = {
     {'<', {'<', '=', Token::Type::Less, Token::Type::LessOrEqual}},
     {'>', {'>', '=', Token::Type::Greater, Token::Type::GreaterOrEqual}},
     {'=', {'=', '=', Token::Type::AssignmentOperator, Token::Type::Equals}},
-    {'!', {'!', '=', Token::Type::NotEquals, Token::Type::NotEquals}},
+    {'!', {'!', '=', Token::Type::NotEquals, Token::Type::Invalid}},
 };
 } // namespace wasmabi

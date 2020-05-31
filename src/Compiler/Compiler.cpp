@@ -30,7 +30,7 @@ void Compiler::compile() {
                                     std::filesystem::absolute(filename));
   ErrorHandler errorHandler(sourceController, std::cout);
   Lexer lexer(sourceController, errorHandler);
-  Parser parser(lexer, errorHandler, std::cout);
+  Parser parser(lexer, errorHandler);
 
   auto ast = parser.parse();
 

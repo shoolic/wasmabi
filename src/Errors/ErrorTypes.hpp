@@ -22,6 +22,11 @@ public:
   LexicalError(std::string str);
 };
 
+class UnexpSignAfterExclamationError : public LexicalError {
+public:
+  UnexpSignAfterExclamationError();
+};
+
 class UnexpectedZeroError : public LexicalError {
 public:
   UnexpectedZeroError();

@@ -10,7 +10,7 @@ namespace wasmabi {
 
 class Parser {
 public:
-  Parser(Lexer &lexer_, ErrorHandler &errorHandler_, std::ostream &output_);
+  Parser(Lexer &lexer_, ErrorHandler &errorHandler_);
   std::unique_ptr<Program> parse();
 
 private:
@@ -53,7 +53,6 @@ private:
 
   Lexer &lexer;
   ErrorHandler &errorHandler;
-  std::ostream &output;
 
   Token next();
   Token peek();

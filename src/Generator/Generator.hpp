@@ -10,8 +10,6 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
 
-// #include "../Nodes/Node.hpp"
-
 namespace wasmabi {
 
 struct Program;
@@ -43,8 +41,8 @@ class Generator {
 public:
   Generator(std::ostream &output_, std::string moduleName_,
             std::string sourceFilePath_);
-  llvm::Value *gen(Program &node);
-  llvm::Function *gen(FunctionDefinition &node);
+  void gen(Program &node);
+
   llvm::Value *gen(Literal &node);
   llvm::Type *gen(VariableType &node);
   llvm::Type *gen(FunctionType &node);
@@ -73,6 +71,10 @@ private:
   std::vector<std::map<std::string, llvm::Value *>> values;
   std::map<std::string, llvm::Constant *> globalStrings;
 
+  void genFunHeader(FunctionDefinition &funDef);
+  void genFunBody(FunctionDefinition &funDef);
+  void genFunParams(FunctionDefinition &funDef);
+
   llvm::Value *genFloatBinExpr(BinaryExpression &node, llvm::Value *leftValue,
                                llvm::Value *rightValue);
   llvm::Value *genIntBinExpr(BinaryExpression &node, llvm::Value *leftValue,
@@ -90,10 +92,11 @@ private:
   bool isBool(llvm::Value *value);
   bool sameType(llvm::Value *value1, llvm::Value *value2);
 
-  llvm::Value *getVar(std::string name);
+  llvm::Value *getVar(std::string name) const;
   void insertVar(std::string name, llvm::Value *value);
 
-  llvm::Value *makeConditionFromValue(llvm::Value *value);
+  llvm::Value *makeBoolFromValue(llvm::Value *value);
+  llvm::Value *makeInt32FromValue(llvm::Value *value);
 };
 
 } // namespace wasmabi

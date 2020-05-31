@@ -38,4 +38,4 @@ cd ../..;
 ```
 
 ### Enable printing during tests
-In `tests/helpers/NullOstream.hpp` there is defined `PREVENT_PRINTING` name. Undefine it to make the program output visible. 
+In `tests/helpers/NullOstream.hpp` there is defined `PREVENT_PRINTING` name. Undefine it to make the program output visible during tests. 
