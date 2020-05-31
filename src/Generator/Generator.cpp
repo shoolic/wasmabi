@@ -77,6 +77,9 @@ void Generator::genFunBody(FunctionDefinition &funDef) {
   genFunParams(funDef);
 
   gen(*(funDef.block));
+
+  genFunRet(funDef);
+
   llvm::verifyFunction(*function);
 
   values.pop_back();
@@ -93,6 +96,23 @@ void Generator::genFunParams(FunctionDefinition &funDef) {
     builder.CreateStore(static_cast<llvm::Value *>(&arg), alloca);
     insertVar(funDef.parameters[idx]->identifier, alloca);
     idx++;
+  }
+}
+
+llvm::Value *Generator::genFunRet(FunctionDefinition &funDef) {
+
+  switch (funDef.returnedType->type) {
+  case FunctionType::Type::Float:
+    return builder.CreateRet(llvm::ConstantFP::get(builder.getFloatTy(), 0.0));
+
+  case FunctionType::Type::Int:
+    return builder.CreateRet(builder.getInt32(0));
+  case FunctionType::Type::String:
+    return builder.CreateRet(getStringLiteral(""));
+  case FunctionType::Type::Void:
+    return builder.CreateRetVoid();
+  default:
+    return nullptr;
   }
 }
 

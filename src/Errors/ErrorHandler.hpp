@@ -13,8 +13,8 @@ public:
   ErrorHandler(SourceController &sourceController_, std::ostream &ostream);
   void registerLexicalError(LexicalError &error);
 
-  void registerSyntaxError(SyntaxError *e);
-  void registerUnexpectedTokenSyntaxError(UnexpectedToken *e);
+  void registerSyntaxError(SyntaxError &e);
+  void registerUnexpectedTokenSyntaxError(UnexpectedToken &e);
 
 private:
   SourceController &sourceController;

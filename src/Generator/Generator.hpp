@@ -74,6 +74,7 @@ private:
   void genFunHeader(FunctionDefinition &funDef);
   void genFunBody(FunctionDefinition &funDef);
   void genFunParams(FunctionDefinition &funDef);
+  llvm::Value *genFunRet(FunctionDefinition &funDef);
 
   llvm::Value *genFloatBinExpr(BinaryExpression &node, llvm::Value *leftValue,
                                llvm::Value *rightValue);

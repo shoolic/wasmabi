@@ -26,17 +26,17 @@ std::ostream &ErrorHandler::pre() {
                  << "^" << std::endl;
 }
 
-void ErrorHandler::registerSyntaxError(SyntaxError *e) {
-  pre() << "Token with type " << e->got.getType() << " and value "
-        << e->got.getValue() << " caused error:" << std::endl
-        << OstreamModifier::BOLD << e->what() << OstreamModifier::END
+void ErrorHandler::registerSyntaxError(SyntaxError &e) {
+  pre() << "Token with type " << e.got.getType() << " and value "
+        << e.got.getValue() << " caused error:" << std::endl
+        << OstreamModifier::BOLD << e.what() << OstreamModifier::END
         << std::endl;
 }
 
-void ErrorHandler::registerUnexpectedTokenSyntaxError(UnexpectedToken *e) {
-  pre() << "Token with type " << e->got.getType() << " and value "
-        << e->got.getValue() << " caused error" << std::endl
-        << OstreamModifier::BOLD << "Expected " << e->expected
+void ErrorHandler::registerUnexpectedTokenSyntaxError(UnexpectedToken &e) {
+  pre() << "Token with type " << e.got.getType() << " and value "
+        << e.got.getValue() << " caused error" << std::endl
+        << OstreamModifier::BOLD << "Expected " << e.expected
         << OstreamModifier::END << std::endl;
 }
 

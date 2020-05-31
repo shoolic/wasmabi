@@ -101,10 +101,10 @@ std::unique_ptr<Program> Parser::parse() {
     }
 
     return program;
-  } catch (UnexpectedToken *e) {
+  } catch (UnexpectedToken &e) {
     errorHandler.registerUnexpectedTokenSyntaxError(e);
     throw;
-  } catch (SyntaxError *e) {
+  } catch (SyntaxError &e) {
     errorHandler.registerSyntaxError(e);
     throw;
   }
@@ -113,7 +113,7 @@ std::unique_ptr<Program> Parser::parse() {
 
 bool Parser::expect(Token token, Token::Type type) {
   if (token != type) {
-    throw new UnexpectedToken(token, type);
+    throw UnexpectedToken(token, type);
   }
 
   return true;
@@ -160,7 +160,7 @@ std::unique_ptr<FunctionType> Parser::createFunctionReturnedType() {
     return std::make_unique<FunctionType>(it->second);
   }
 
-  throw new UnknownFunRetType(t);
+  throw UnknownFunRetType(t);
 }
 
 std::unique_ptr<Block> Parser::createBlock() {
@@ -202,7 +202,7 @@ std::unique_ptr<VariableType> Parser::createVariableType(Token t) {
     return std::make_unique<VariableType>(it->second);
   }
 
-  throw new UnknownVarRetType(t);
+  throw UnknownVarRetType(t);
 }
 
 void Parser::skipTypeOperator() { expect(next(), Token::Type::TypeOperator); }
@@ -214,7 +214,7 @@ std::unique_ptr<Statement> Parser::createStatement() {
     return it->second();
   }
 
-  throw new StatementError(peekToken);
+  throw StatementError(peekToken);
 }
 
 std::unique_ptr<LoopStatement> Parser::createLoopStatement() {
@@ -274,7 +274,7 @@ std::unique_ptr<Statement> Parser::createStatementFromIdentifier() {
     return createFunctionCallStatement(identifier);
   }
 
-  throw new StatmentWithIdentifierError(peek());
+  throw StatmentWithIdentifierError(peek());
 }
 
 std::unique_ptr<VariableDefinitionStatement>
@@ -316,7 +316,7 @@ Parser::createVariableDefinitionStatement() {
     }
 
   } else {
-    throw new VariableDefinitionStatementError(determiner);
+    throw VariableDefinitionStatementError(determiner);
   }
   return variableDefinitionStatement;
 }
@@ -390,7 +390,7 @@ std::unique_ptr<SelectExpression> Parser::createSelectExpression() {
       select->otherwiseCaseValue = std::move(valueExpr);
       break;
     } else {
-      throw new SelectExpressionError(t);
+      throw SelectExpressionError(t);
     }
   }
 
@@ -440,7 +440,7 @@ std::unique_ptr<ValueExpression> Parser::nud(Token t) {
     }
   }
 
-  throw new ValueExpressionNudError(t);
+  throw ValueExpressionNudError(t);
 }
 
 std::unique_ptr<ValueExpression>
@@ -466,7 +466,7 @@ Parser::led(std::unique_ptr<ValueExpression> left, Token oper) {
     }
   }
 
-  throw new ValueExpressionLedError(oper);
+  throw ValueExpressionLedError(oper);
 }
 
 int Parser::bindingPower(Token t) {
@@ -474,7 +474,7 @@ int Parser::bindingPower(Token t) {
   if (it != bindingPowerMap.end()) {
     return it->second;
   }
-  throw new UnexpectedTokenValExprError(t);
+  throw UnexpectedTokenValExprError(t);
 }
 
 bool Parser::isExpressionTerminator(Token t) {

@@ -116,10 +116,10 @@ BOOST_AUTO_TEST_CASE(OperatorPrecedence) {
                                           .get());
 
   ParenthesisPrintVisitor parenthesisPrinter;
-  BOOST_CHECK_EQUAL(
-      parenthesisPrinter.getString(*(s->value)),
-      "((((((not(x))+(1))-(((2)*(4))/"
-      "((5)^(6))))or(((((7)<(8))<=(9))>(10))>=(11)))!=((12)==(13)))and(14))");
+  BOOST_CHECK_EQUAL(parenthesisPrinter.getString(*(s->value)),
+                    "(((not(x))+(1))-(((2)*(4))/"
+                    "((5)^(((((((6)or(7))<(8))<=(9))>(10))>=((11)!=(12)))==(("
+                    "13)and(14))))))");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
