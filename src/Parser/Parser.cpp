@@ -309,11 +309,11 @@ Parser::createVariableDefinitionStatement() {
     return variableDefinitionStatement;
   } else if (determiner == Token::Type::AssignmentOperator) {
     variableDefinitionStatement->value = createValueExpression();
-    expect(next(), Token::Type::Semicolon);
 
-    if (variableDefinitionStatement->value) {
-      std::runtime_error("no value in assignment");
+    if (!variableDefinitionStatement->value) {
+      throw ValueExpressionLedError(peek());
     }
+    expect(next(), Token::Type::Semicolon);
 
   } else {
     throw VariableDefinitionStatementError(determiner);
@@ -328,6 +328,9 @@ Parser::createVariableAssignmentStatement(Token t) {
   variableAssignmentStatement->identifier = createIdentifier(t);
   expect(next(), Token::Type::AssignmentOperator);
   variableAssignmentStatement->value = createValueExpression();
+  if (!variableAssignmentStatement->value) {
+    throw ValueExpressionLedError(peek());
+  }
 
   expect(next(), Token::Type::Semicolon);
 
@@ -447,6 +450,10 @@ Parser::led(std::unique_ptr<ValueExpression> left, Token oper) {
 
   if (oper.getType() == Token::Type::PowOperator) {
     auto right = createValueExpression(bindingPower(oper) - 1);
+    if (!right) {
+      throw ValueExpressionLedError(peek());
+    }
+
     auto ret = std::make_unique<BinaryExpression>(BinaryExpression::Type::Pow);
     ret->leftOperand = std::move(left);
     ret->rightOperand = std::move(right);
@@ -456,8 +463,11 @@ Parser::led(std::unique_ptr<ValueExpression> left, Token oper) {
   {
     auto it = tokenToBinExprTypeMap.find(oper.getType());
     if (it != tokenToBinExprTypeMap.end()) {
-
       auto right = createValueExpression(bindingPower(oper));
+      if (!right) {
+        throw ValueExpressionLedError(peek());
+      }
+
       auto ret = std::make_unique<BinaryExpression>(it->second);
       ret->leftOperand = std::move(left);
       ret->rightOperand = std::move(right);

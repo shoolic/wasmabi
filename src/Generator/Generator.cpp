@@ -224,7 +224,7 @@ llvm::Value *Generator::gen(UnaryExpression &node) {
   auto value = node.operand->gen(*this);
 
   if (isString(value)) {
-    throw GeneratorError("Cannot use string value as operand.");
+    throw StringAsOperandError();
   }
 
   switch (node.type) {

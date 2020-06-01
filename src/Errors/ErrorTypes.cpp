@@ -11,10 +11,8 @@ NoSourceFileError::NoSourceFileError()
 
 LexicalError::LexicalError(std::string str) : std::runtime_error(str) {}
 
-
 UnexpSignAfterExclamationError::UnexpSignAfterExclamationError()
-    : LexicalError(
-          "Expected !=") {}
+    : LexicalError("Expected !=") {}
 
 UnexpectedZeroError::UnexpectedZeroError()
     : LexicalError(
@@ -85,7 +83,7 @@ const char *ValueExpressionNudError::what() {
 ValueExpressionLedError::ValueExpressionLedError(Token got_)
     : SyntaxError(got_) {}
 const char *ValueExpressionLedError::what() {
-  return "Failed to build BinaryExpression\n";
+  return "No right operand found\n";
 }
 
 UnexpectedTokenValExprError::UnexpectedTokenValExprError(Token got_)

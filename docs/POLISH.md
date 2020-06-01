@@ -581,6 +581,44 @@ Wypisuje drzewo AST na podany w konstruktorze strumień.
 Działa jedynie dla węzłów typu `ValueExpression` i zwraca ich nawiasową postać.
 
 
+## Zarządzanie projektem
+
+### Kompilacja
+
+#### Release
+
+```
+./create_configs.sh;
+cd build/Release;
+make;
+cd ../..;
+./bin/Release/wasmabi tests/examples/preDocs1.wa;
+```
+
+#### Debug
+
+```
+./create_configs.sh;
+cd build/Debug;
+make;
+cd ../..;
+./bin/Debug/wasmabi tests/examples/preDocs1.wa;
+```
+
+### Testy
+
+Testy powstały z wykorzystaniem Boost Unit Test Framework.
+
+#### Uruchomienie testów
+
+```
+./create_configs.sh;
+./run_tests.sh;
+```
+
+### Output z programu w czasie testów
+W `tests/Helpers/NullOstream.hpp` zdefiniowana jest nazwa`PREVENT_PRINTING`. Unieważnij (undef) ją, żeby umożliwić wyświetlenie outputu z programu w czasie testów. 
+
 ## Dodatkowe uwagi
 ### Linkowane funkcje 
 Generator, jeśli istnieje taka konieczność, dołącza deklaracje funkcji, które Compilator później linkuje.
