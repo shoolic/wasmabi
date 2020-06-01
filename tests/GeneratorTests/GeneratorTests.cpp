@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(GeneratorPreDocsExampleTest) {
 
   std::stringstream out{};
 
-  Generator generator(out, "sourceStream", sourceController.getSourcePath());
+  Generator generator(out, "sourceStream", "sourceStream");
   generator.gen(*ast);
 
   std::ifstream compareIRFile("tests/examples-ll/preDocs1.ll");

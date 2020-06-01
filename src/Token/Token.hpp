@@ -67,7 +67,7 @@ public:
     Invalid,
   };
 
-  struct potentiallyDoubleChar { // TODO move to lexer
+  struct potentiallyDoubleChar {
     char current;
     char next;
     Type typeIfNextNotMatched;

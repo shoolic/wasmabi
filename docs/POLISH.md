@@ -18,9 +18,10 @@ Celem projektu jest stworzenie prostego języka ogólnego przeznaczenia, który 
 - instrukcja print wypisująca wartość,
 - wielolinijkowe komentarze zaczynające się i kończące znakiem @,
 - funkcje z parametrami, wywoływane zarówno jako pojedyncza instrukcja, jak i jako wartość,
-- operacje matematyczne z priorytetami i nawiasowaniem (binarne: dodawanie, odejmowanie, mnożenie, dzielenie, - potęgowanie i unarne: negacja),
-- operacje logiczne z priorytetami i nawiasowaniem, operatory logiczne: i, lub, negacji,  operatory relacji: mniejszy, - większy, nie mniejszy, nie większy, równy, różny od,
-- wszystkie instrukcje muszą być zawarte w obrębie definicji.
+- operacje matematyczne z priorytetami i nawiasowaniem (binarne: dodawanie, odejmowanie, mnożenie, dzielenie, potęgowanie i unarne: negacja),
+- operacje logiczne z priorytetami i nawiasowaniem, operatory logiczne: i, lub, negacji, 
+- operatory relacji: mniejszy, większy, mniejszy równy, większy równy, równy, różny od,
+- wszystkie instrukcje muszą być zawarte w obrębie definicji funkcji.
 
 ## Wejście i wyjście
 
@@ -32,13 +33,6 @@ Zainstalowane:
 - `wasi-sdk` [https://github.com/WebAssembly/wasi-sdk](https://github.com/WebAssembly/wasi-sdk)
 
 ### Opis
-Na podstawie pliku wejściowego `.wa` program generuje:
-
-- plik postaci pośredniej LLVM IR `.ll` (zawsze)
-- plik określający odwzorowujący strukturę AST (na żądanie poprzez opcję `-d`)
-- plik binarny WebAssembly `.wasm` (domyślnie lub poprzez opcję `-t wasm`)
-- plik wykonywalny `.out` (na żądani poprzez opcję `-t native`)
-
 Program posiada następujące opcje:
 
 ```
@@ -52,7 +46,68 @@ Program posiada następujące opcje:
 -i [ --input ] arg                    input file *.wa
 ```
 
-### Przykłady użycia
+
+
+Na podstawie pliku wejściowego `.wa` program generuje:
+
+- plik postaci pośredniej LLVM IR `.ll` (zawsze)
+- plik określający odwzorowujący strukturę AST (na żądanie poprzez opcję `-d`)
+- plik binarny WebAssembly `.wasm` (domyślnie lub poprzez opcję `-t wasm`)
+- plik wykonywalny `.out` (na żądanie poprzez opcję `-t native`)
+
+### Target
+Dostępne są dwa targety kompilacji:
+
+- native
+- wasm
+
+#### Native
+
+Kompiluje LLVM IR do postaci pliku wykonywalnego na danej maszynie. Wewnątrz program używa do tego polecenia:
+
+```clang -lm -o test.out test.ll```
+
+Plik wejściowy `test.wa` musi posiadać funkcję z nagłówkiem `fn main(): int`, żeby skompilować go do tej postaci.
+
+
+#### Wasm
+
+Kompiluje LLVM IR do postaci pliku binarnego `*.wasm`. Wewnątrz program używa do tego polecenia:
+
+```
+clang --target=wasm32-unknown-wasi --sysroot=/opt/wasi-sdk/share/wasi-sysroot
+ -nostartfiles -Wl,--no-entry -Wl,--export-all -o test.wasm test.ll;
+```
+
+Konieczne jest tutaj posiadanie zainstalowanego `wasi-sdk` (domyslnie w folderze `/opt/wasi-sdk/share/wasi-sysroot`).
+
+Opcja `wasmabi --wasi-sysroot path` służy do wskazania innej niż domyślna ścieżki.
+
+Zaleca się (zostało to przetestowane) uruchamianie plików `.wasm` przy pomocy maszyny wirtualnej [wasmtime](https://wasmtime.dev).
+
+##### Przykłady użycia z `wasmtime`
+
+
+Dla programu wejściowego `test.wa`:
+```
+fn add(a: int, b: int) {
+  return a + b;
+}
+```
+
+wywołaj komendę:
+
+```wasmtime test.wasm --invoke add 1 2```
+
+oczekiwany output:
+
+```warning: using `--invoke` with a function that takes arguments is experimental and may break in the future
+warning: using `--invoke` with a function that returns values is experimental and may break in the future
+3
+```
+
+
+### Przykłady użycia `wasmabi`
 
 ```
 > wasmabi --target native --dump-ast test.wa
@@ -70,6 +125,9 @@ test.wa
 test.ll
 test.wasm
 ```
+
+
+
 
 
 ## Przykładowy kod
@@ -104,6 +162,8 @@ fn main(): int {
 
 ### Przykład 2 - select
 
+Przykład ilustruje wyłącznie konstrukcję, a nie cały kod.
+
 ```
 let x: string = select {
   "Sukces" when score >= 75,
@@ -114,6 +174,8 @@ let x: string = select {
 
 ### Przykład 3 - loop
 
+Przykład ilustruje wyłącznie konstrukcję, a nie cały kod.
+
 ```
 loop x > 0 and y != 4 {
   print x;
@@ -123,11 +185,16 @@ loop x > 0 and y != 4 {
 
 ### Przykład 4 - if i operacje logiczne
 
+Przykład ilustruje wyłącznie konstrukcję, a nie cały kod.
+
 ```
 if not (x >= 0 or y > 10) and x != -5 {
   print "Zaakceptowano";
 }
-Przykład 5 - operacje matematyczne
+```
+
+### Przykład 5 - operacje matematyczne
+```
 @ rocket math @
 x = (2.1+3.7) * -0.6;
 ```
@@ -228,9 +295,6 @@ letter = "A" | "B" | "C" | "D" | "E" | "F" | "G"
        | "x" | "y" | "z" ;
 ```
 
-
-
-
 ## Implementacja
 
 ### Język
@@ -243,13 +307,15 @@ letter = "A" | "B" | "C" | "D" | "E" | "F" | "G"
 - `Boost 1.70+`
 - `LLVM 10+`
 - `clang 10+`
-- `wasi-sdk` (https://github.com/WebAssembly/wasi-sdk)[https://github.com/WebAssembly/wasi-sdk] - konieczne do kompilowania do plików binarnych `.wasm`
+- `wasi-sdk` [https://github.com/WebAssembly/wasi-sdk](https://github.com/WebAssembly/wasi-sdk) - konieczne do kompilowania do plików binarnych `.wasm`
 
 ### Moduły
 
 #### Compiler
 
 Centralny moduł programu zarządzający procesem kompilacji i innymi modułami.
+Kiedy Generator stworzy LLVM IR, Compilator tworzy subproces wywołując `clang` z odpowiednimi opcjami.
+
 Konstruktor wymaga:
 
 - `std::string filename_` nazwa pliku wejściowego
@@ -319,7 +385,7 @@ Moduł zarządzający wejściem programu. Umożliwia pobieranie, podglądanie ko
 Konstruktor wymaga:
 
 - `std::istream &sourceStream_` strumień danych wejściowych
-- opcjonalnie `std::string sourcePath_` bezwzględną ścieżkę do pliku wejściowego
+- opcjonalnie `std::string sourcePath_` bezwzględna ścieżka do pliku wejściowego
 
 #### Lexer
 
@@ -330,13 +396,37 @@ Konstruktor wymaga:
 - `SourceController &sourceController_`
 - `ErrorHandler &errorHandler_` 
 
+Publiczne funkcje:
+
+- `const Token nextToken()`
+
 #### Parser
 
 Moduł odpowiada za analizę syntaktyczną, pobiera kolejne tokeny, tworzy z nich AST i poprzez funckję `parse` udostępnia dalej.
 
+Konstruktor wymaga:
+
+- `Lexer &lexer_`
+- `ErrorHandler &errorHandler_`
+
+Publiczne funkcje:
+
+  - `std::unique_ptr<Program> parse()`
+
 #### Generator
 
 Moduł odpowiada za generację postaci pośredniej LLVM IR oraz za analizę semantyczną (kontrola typów i nazw).
+
+Konstruktor wymaga:
+
+- `std::ostream &output_` output na LLVM IR
+- `std::string moduleName_` potrzebne do ustawienia nazwy modułu LLVM IR
+- `std::string sourceFilePath_` ścieżka pliku wejściowego (na potrzeby wygenerowania LLVM IR ze wskazaniem na tę ścieżkę)
+
+Publiczne funkcje:
+
+- `void gen(Program &node)`
+- i inne konieczne ze względu na wzorzec wizytora
 
 #### Tokeny
 
@@ -435,7 +525,7 @@ Wyszczególnione są następujące typy tokenów:
 
 #### Węzły (nodes)
 
-Węzły są strukturami tworzony przez Parser w procesie budowania drzewa.
+Węzły są strukturami tworzonymi przez Parser w procesie budowania drzewa.
 
 Dostępne są następujące rodzaje węzłów:
 
@@ -447,7 +537,7 @@ Dostępne są następujące rodzaje węzłów:
 - `Block` blok kodu (ograniczony nawiasami klamrowymi), składa się z innych `Block` lub `Statement`
 - `FunctionDefinition`
 - `FunctionDefinitionParameter` deklaracja parametru w definicji funkcji
-- `SelectExpressionCase` klasa reprezentująca przypadek w wyrażeniu select
+- `SelectExpressionCase` klasa reprezentująca przypadek w wyrażeniu `select`
 
 Klasy dziedziczące po `ValueExpression` reprezentujące wyrażenie:
 
@@ -484,7 +574,7 @@ Abstrakcyjna klasa wizytora.
 
 ##### PrintVisitor
 
-Wypisuje drzewo AST na podany strumień.
+Wypisuje drzewo AST na podany w konstruktorze strumień.
 
 ##### ParenthesisPrintVisitor
 
@@ -492,6 +582,22 @@ Działa jedynie dla węzłów typu `ValueExpression` i zwraca ich nawiasową pos
 
 
 ## Dodatkowe uwagi
+### Linkowane funkcje 
+Generator, jeśli istnieje taka konieczność, dołącza deklaracje funkcji, które Compilator później linkuje.
+
+Możliwe funkcje to:
+
+- printf 
+- powf
+
+### Wypisywanie na ekran
+
+Za pomocą instrukcji `print value;` można wypisać wartość na ekran. Dopuszczalne do wypisania są wartości typu `Int`, `Float` i `String`. Automatycznie dodawany jest znak nowej linii.
+
+### Potęgowanie 
+
+Wartości podstawy i wykładnika zawsze sprowadzane są do typu `Float`, a następnie wywoływana jest funkcja `powf`.
+
 ### Priorytety operatorów
 
 - `AddOperator` 10
@@ -509,9 +615,23 @@ Działa jedynie dla węzłów typu `ValueExpression` i zwraca ich nawiasową pos
 - `AndOperator` 60
 - `NotOperator` 60
 
+
+### Ciągi znaków
+Ciągi znaków są stałe. Generator tworzy je jako zmienne globalne unikając powtórzeń tych samych wartości.
+
+
+### Zmienne
+
+Zmienne niezainicjalizowane są inicjalizowane przez Parser podstawowymi wartościami podstawowymi dla danego typu:
+
+- `String` - `""`
+- `Int` - `0`
+- `Float` - `0.0`
+
 ### Typy
 
 - Odwzorowanie typów na LLVM IR:
+
   - `String` - `*i8`
   - `Int` - `i32`
   - `Float` - `float` 
@@ -521,5 +641,9 @@ Działa jedynie dla węzłów typu `ValueExpression` i zwraca ich nawiasową pos
 
   - Dla binarnego wyrażenia o niezgodnych typach następuje rzutowanie do `Float`.
 
-  - Rezultat operacji logiczne i porównania rzutowany jest do typu `Int`.
+  - Rezultat operacji logicznej i porównania rzutowany jest do typu `Int`.
+
+### Instrukcja return
+
+Na potrzebny poprawności LLVM IR do każdej funkcji na jej końcu dodawana jest instrukcja zwracająca wartość podstawową danego typu.
 

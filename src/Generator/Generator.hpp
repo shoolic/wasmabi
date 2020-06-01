@@ -41,6 +41,7 @@ class Generator {
 public:
   Generator(std::ostream &output_, std::string moduleName_,
             std::string sourceFilePath_);
+            
   void gen(Program &node);
 
   llvm::Value *gen(Literal &node);

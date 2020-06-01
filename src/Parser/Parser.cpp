@@ -403,7 +403,6 @@ std::unique_ptr<ValueExpression> Parser::createValueExpression(int rbp) {
 
   if (isExpressionTerminator(peek())) {
     return nullptr;
-    // TODO error?
   }
 
   Token t = next();
