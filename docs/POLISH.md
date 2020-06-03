@@ -101,7 +101,8 @@ wywołaj komendę:
 
 oczekiwany output:
 
-```warning: using `--invoke` with a function that takes arguments is experimental and may break in the future
+```
+warning: using `--invoke` with a function that takes arguments is experimental and may break in the future
 warning: using `--invoke` with a function that returns values is experimental and may break in the future
 3
 ```
